@@ -1,0 +1,304 @@
+<chat url='https://claude.ai/chat/0d54e7b3-9afa-4e0d-9543-f2c88a45b75c' updated_at='2026-03-13T06:16:48.131562+00:00'>
+Content:
+Title: Resuming previous conversation
+
+Human: Continue from old chat
+
+Assistant:  It looks like I don't have access to your previous conversation — each chat session starts fresh, and I don't have memory of past conversations unless you've enabled the memory feature in Settings.
+
+To pick up where you left off, could you give me a quick summary of what we were working on? I'm happy to jump right back in!
+
+Human: How do I turn that on
+
+Assistant:  To enable memory in Claude, here's how:
+
+1. Click on your **profile icon** in the top-right corner of the screen
+2. Go to **Settings**
+3. Look for the **Memory** section and toggle it on
+
+Once enabled, Claude will start generating memories from your conversations that carry over into future chats.
+
+That said, turning it on now won't recover your previous conversation — it only starts saving context going forward. To continue your old work, you'd still need to give me a quick recap of what you were doing!
+
+Human: Got it! Let me finish building the full homepage with all of that in mind — “Special Projects Tools” as the name, Atomix green/teal brand colors, dark but bright and fun, not flat or too serious. Building the complete file now.
+
+Assistant:  That sounds great! It seems like you were already deep into building this with me in a previous session. Go ahead and share what you have so far — whether that's a description, existing code, or a list of sections/features you want on the homepage — and I'll help you build it out completely!
+
+Human: <!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Atomix Special Projects Tools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1118;--bg2:#111820;--bg3:#172030;--bg4:#1d2a3a;
+  --border:#1e2d3d;--border2:#253549;
+  --green:#3EBD84;--green2:#2da870;--green-dim:#0d2218;--green-glow:rgba(62,189,132,0.18);
+  --teal:#2dd4bf;--teal-dim:#0a2220;
+  --blue:#4A9FD4;--blue-dim:#0d1e30;
+  --amber:#f59e0b;--amber-dim:#251a05;
+  --red:#f87171;--red-dim:#250d0d;
+  --purple:#a78bfa;--purple-dim:#1a1030;
+  --text:#e8f0f8;--text2:#7a9ab5;--text3:#3d5570;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* AMBIENT GLOW */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:...elector('.r-unit').value='';}}
+let rowCount=0;
+function addRow(skuVal='',descVal='',unitVal='',oqty='',sqty=''){
+  rowCount++;const id='row-'+rowCount;
+  const tr=document.createElement('tr');tr.id=id;
+  tr.innerHTML=`<td class="td-sku"><select onchange="skuChanged(this,'${id}')">${buildOptions(skuVal)}</select></td><td class="td-desc"><input type="text" class="r-desc" value="${descVal}" placeholder="Description"/></td><td class="td-unit"><input type="text" class="r-unit" value="${unitVal}" placeholder="Unit Type"/></td><td class="td-qty"><input type="number" class="r-oqty" value="${oqty}" min="0" placeholder="0"/></td><td class="td-ship"><input type="number" class="r-sqty" value="${sqty}" min="0" placeholder="0"/></td><td class="td-del no-print"><button class="del-btn" onclick="document.getElementById('${id}').remove()" title="Remove">✕</button></td>`;
+  document.getElementById('items-body').appendChild(tr);
+  if(skuVal){const f=SKUS.find(s=>s.sku===skuVal);if(f){tr.querySelector('.r-desc').value=f.desc;tr.querySelector('.r-unit').value=f.unit;}}
+}
+function removeRow(){const b=document.getElementById('items-body');if(b.lastElementChild)b.lastElementChild.remove();}
+function clearSlip(){
+  if(!confirm('Clear all fields?'))return;
+  ['f-date','f-po','ship-name','ship-addr1','ship-addr2','ship-city','s-po','s-cases','s-pallets','s-odate','s-pdate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('items-body').innerHTML='';rowCount=0;for(let i=0;i<8;i++)addRow();
+}
+
+const today=new Date().toLocaleDateString('en-US');
+document.getElementById('f-date').value=today;
+document.getElementById('s-odate').value=today;
+applyVendorDisplay();
+for(let i=0;i<8;i++)addRow();
+</script>
+</body>
+</html>
+</parameter>
+</tool>
+🎉 **All 6 files are done!** Here's your complete suite ready to push to GitHub in the morning:
+
+| File | Status |
+|------|--------|
+| `index.html` | ✅ Homepage with Admin Panel |
+| `labor-tracker.html` | ✅ Full drag & drop tracker |
+| `retail-dashboard.html` | ✅ B2B/Retail order pipeline |
+| `special-project-quote.html` | ✅ Quote builder + PDF export |
+| `labor-calculator.html` | ✅ Barcoding / FBA / Kitting estimator |
+| `iq-bar-packing-slip.html` | ✅ Packing slip + print ready |
+
+Each artifact above is the complete file — just copy the contents, save with the correct filename, and push. Everything uses the same localStorage keys so the Admin Panel on the homepage will pull live data from the other tools. 🚀</chat>
+
+<chat url='https://claude.ai/chat/19b3f075-7da7-4347-93dc-277eee238efb' updated_at='2026-03-13T05:44:45.280121+00:00'>
+Content:
+Title: Special project quote template with PDF export
+
+Human: Need to make another tool for my website. This one is going to be a special project quote template this is th current one but would love to make easier and have a drop down for materials with their cost already tied to them then I just update quantity but can adjust price if needed. I can share our list of materials and costs. And then would like so that I can export this as a pdf
+
+Assistant: <tool name="artifacts">
+<parameter name="version_uuid">ac25c262-f782-4b8d-9ed3-19b5ed217c53</parameter>
+<parameter name="command">create</parameter>
+<parameter name="id">quote-tool</parameter>
+<parameter name="type">application/vnd.ant.react</parameter>
+<parameter name="title">Atomix Special Project Quote Tool</parameter>
+<parameter name="content">
+import { useState, useRef } from "react";
+
+const DEFAULT_MATERIALS = [
+  { name: "2x1 Barcode Labels", cost: 0.20 },
+  { name: "4x6 Shipping Label", cost: 0.15 },
+  { name: "Thermal Ribbon", cost: 2.50 },
+  { name: "Poly Bag 6x9", cost: 0.08 },
+  { name: "Poly Bag 10x13", cost: 0.12 },
+  { name: "Cardboard Box 12x12x12", cost: 1.80 },
+  { name: "Bubble Wrap (per ft)", cost: 0.30 },
+  { name: "Packing Tape Roll", cost: 1.25 },
+];
+
+const LABOR_RATE = 60;
+
+function formatDate(d) {
+  const [y, m, day] = d.split("-");
+  return `${m}/${day}/${y.slice(2)}`;
+}
+
+export default function QuoteTool() {
+  const [client, setClient] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [projectRef, setProjectRef] = useState("");
+  const [hours, setHours] = useState(1);
+  const [laborRate, setLaborRate] = useState(LABOR_RATE);
+  const [notes, setNotes] = useState("");
+  const [materials, setMaterials] = useState([{ name: "", qty: 1, unitCost: 0 }]);
+  const [customMaterials, setCustomMaterials] = useState(DEFAULT_MATERIALS);
+  const [showMatMgr, setShowMatMgr] = useState(false);
+  const [newMatName, setNewMatName] = useState("");
+  const [newMatCost, setNewMatCost] = useState("");
+  const printRef = useRef();
+
+  const laborTotal = parseFloat(hours) * parseFloat(laborRate) || 0;
+  const matTotal = materials.reduce((s, m) => s + (parseFloat(m.qty) || 0) * (parseFloat(m.unitCost) || 0), 0);
+  const total = laborTotal + matTotal;
+
+  const addMaterialRow = () => setMaterials([...materials, { name: "", qty: 1, unitCost: 0 }]);
+  const removeMaterialRow = i => setMaterials(materials.filter((_, idx) => idx !== i));
+
+  const updateMat =...lor:var(--green)">✓ Finalized</span>':'<span class="admin-card-count" style="background:var(--bg3);color:var(--text3)">In Progress</span>'}
+        </div>
+        <div class="admin-card-body">${deptHTML}</div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <span class="admin-card-icon">📦</span>
+          <span class="admin-card-title">Active Orders</span>
+          <span class="admin-card-count" style="background:rgba(45,212,191,0.1);color:var(--teal)">${activeOrders.length} active${urgentOrders.length?' · '+urgentOrders.length+' urgent':''}</span>
+        </div>
+        <div class="admin-card-body">${ordersHTML}</div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <span class="admin-card-icon">🔗</span>
+          <span class="admin-card-title">Quick Access</span>
+        </div>
+        <div class="admin-card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            ${[
+              ['labor-tracker.html','👥','Labor Tracker','var(--green)'],
+              ['retail-dashboard.html','📦','Retail Dashboard','var(--teal)'],
+              ['special-project-quote.html','💰','Project Quote','var(--blue)'],
+              ['labor-calculator.html','⏱','Labor Calc','var(--amber)'],
+              ['iq-bar-packing-slip.html','🧾','IQ Bar Slip','var(--purple)'],
+            ].map(([href,icon,name,color])=>`
+              <a href="${href}" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px;text-decoration:none;display:flex;flex-direction:column;gap:6px;transition:all .2s" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='var(--border2)'">
+                <span style="font-size:20px">${icon}</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">${name}</span>
+              </a>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// Try storage API too
+async function tryStorageLoad(){
+  if(typeof window.storage === 'undefined') return;
+  try{
+    const res=await window.storage.get('labor_tracker_main');
+    if(res&&res.value){
+      const d=JSON.parse(res.value);
+      localStorage.setItem(LABOR_SK,JSON.stringify(d));
+    }
+    const ro=await window.storage.get('atomix_orders_shared');
+    if(ro&&ro.value) localStorage.setItem(ORDERS_SK,ro.value);
+  }catch(e){}
+}
+tryStorageLoad();
+</script>
+</body>
+</html>
+</parameter>
+</tool>
+</chat>
+
+<chat url='https://claude.ai/chat/773f763f-1378-42f4-9414-ee1ac092d9ce' updated_at='2026-03-12T23:08:17.243819+00:00'>
+Content:
+Title: Fixing undefined document property error
+
+Human: ```
+Uncaught Error: Uncaught TypeError: Cannot read properties of undefined (reading 'document')
+```
+
+keep getting this error for this tool you helped me make https://claude.ai/public/artifacts/9a3276cd-7893-410d-89e8-1b83812893db
+
+Assistant:  Let me fetch that artifact to see what's going on.
+<tool name="web_fetch">
+<parameter name="url">https://claude.ai/public/artifacts/9a3276cd-7893-410d-89e8-1b83812893db</parameter>
+</tool>
+I can't access that link directly. Could you paste the code from the artifact here so I can diagnose the issue?
+
+That said, the error `Cannot read properties of undefined (reading 'document')` is a very common one — it typically means something is trying to access `.document` on an object that doesn't exist yet. The most likely culprits are:
+
+- **`window.document` or `iframe.contentWindow.document`** being accessed before the element is fully loaded
+- **A ref** (like `iframeRef.current.contentWindow.document`) being used before the ref is attached
+- **An async timing issue** where code runs before the DOM is ready
+
+If you paste the code (or describe what the tool does), I can pinpoint the exact fix!
+
+Human: https://claude.ai/public/artifacts/9a3276cd-7893-410d-89e8-1b83812893db
+
+Assistant:  I'm unable to access Claude artifact URLs directly — they return a 403 error when fetched. Could you paste the code from the artifact into the chat? You can do that by:
+
+1. Opening the artifact at that link
+2. Clicking the **copy** icon or selecting all the code
+3. Pasting it here
+
+Once I can see the code, I'll be able to fix the error right away!
+
+Human: nah just help me make a new IQ Bar Pack Slip based on the phot I am am providing you that can be directly integrated into my git hub page here as another tool
+
+Assistant:  Got it! I can see the packing slip layout clearly. Let me build this as a clean, fillable HTML tool you can drop right into your GitHub page.
+<tool name="artifacts">
+<parameter name="id">iqbar_packing_slip</parameter>
+<parameter name="type">text/html</parameter>
+<parameter name="title">IQ Bar Packing Slip</parameter>
+<parameter name="command">create</parameter>
+<parameter name="content"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IQ Bar Packing Slip</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 11px;...ol name="web_search">
+<parameter name="query">site:github.com adamag2 Special-Projects-Tools index.html</parameter>
+</tool>
+I can't pull the raw source directly. Can you **paste your current `index.html` code** here? You can get it by:
+
+1. Going to **github.com/adamag2/Special-Projects-Tools**
+2. Clicking `index.html`
+3. Clicking the **Copy raw file** button (top right)
+4. Pasting it here
+
+That way I can see exactly how the Labor Tracker card is structured and give you the **exact replacement card snippet** for the IQ Bar tool so they match perfectly.
+
+Human: 
+
+Assistant:  Got it — I can see the issue clearly. Your IQ Bar card is using different HTML classes (`tool-card-header`, `badge-live`, `h3`, `p`, `tool-link`) instead of the ones your CSS actually styles. Here's the fixed `index.html` with the card matching the Labor Tracker exactly:
+<tool name="artifacts">
+<parameter name="id">fixed_index</parameter>
+<parameter name="type">application/vnd.ant.code</parameter>
+<parameter name="title">index.html — Fixed IQ Bar Card</parameter>
+<parameter name="command">create</parameter>
+<parameter name="content">    <!-- IQ Bar Packing Slip -->
+    <a class="tool-card" href="iq-bar-packing-slip.html">
+      <div class="tool-head">
+        <div class="tool-icon" style="background:rgba(62,189,132,0.1)">📦</div>
+        <span class="tool-status status-live">● Live</span>
+      </div>
+      <div>
+        <div class="tool-name">IQ Bar Packing Slip</div>
+        <div class="tool-desc">Generate and print packing slips for IQ Bar orders. Select SKUs from a dropdown, fill in order details, and print.</div>
+      </div>
+      <div class="tool-tags">
+        <span class="tag">packing slip</span>
+        <span class="tag">IQ Bar</span>
+        <span class="tag">print</span>
+        <span class="tag">orders</span>
+      </div>
+      <div class="tool-arrow">Open tool →</div>
+    </a></parameter>
+<parameter name="language">html</parameter>
+<parameter name="version_uuid">9dbd5603-a42c-414e-aecc-243d2b049da5</parameter>
+</tool>
+**To fix it:**
+
+1. Go to your repo → click `index.html` → click the **pencil (edit) icon**
+2. Find the current IQ Bar card block (starts with `<a class="tool-card" href="iq-bar-packing-slip.html">`)
+3. Replace the entire card with the snippet above
+4. Also update the hero stat from `1` to `2` tools live:
+   ```html
+   <div class="hero-stat-n" id="toolCount">2</div>
+   ```
+5. Commit changes
+
+That's it — the card will now look identical to the Labor Tracker card.</chat>

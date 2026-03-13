@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Project Labor Calculator — Atomix</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f6f8;color:#1a1a1a;min-height:100vh}
+.topnav{background:#0d1f1a;padding:14px 28px;display:flex;align-items:center;gap:16px}
+.topnav a{color:#6ee7b7;font-size:13px;text-decoration:none;opacity:.8}
+.topnav a:hover{opacity:1}
+.topnav .logo{display:flex;align-items:center;gap:10px}
+.topnav .logo-icon{width:30px;height:30px;border:2px solid #6ee7b7;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#6ee7b7;font-size:14px}
+.topnav .logo-text{color:white;font-size:17px;font-weight:700;letter-spacing:1px}
+.topnav .sep{color:#4b5563}
+.page-header{background:linear-gradient(135deg,#1a5c4a 0%,#0d3d2e 100%);color:white;padding:32px 36px 28px}
+.page-header h1{font-size:24px;font-weight:700;margin-bottom:4px}
+.page-header p{font-size:13px;opacity:.7}
+.container{max-width:680px;margin:32px auto;padding:0 20px 60px}
+.card{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:24px;margin-bottom:18px}
+.card-head{font-size:12px;font-weight:700;color:#1a5c4a;text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid #d1fae5;padding-bottom:8px;margin-bottom:16px}
+.type-tabs{display:flex;gap:10px;margin-bottom:0}
+.type-btn{flex:1;padding:10px 0;border-radius:8px;border:2px solid #e5e7eb;background:white;color:#374151;font-weight:400;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit}
+.type-btn:hover{border-color:#1a5c4a;color:#1a5c4a}
+.type-btn.active{border-color:#1a5c4a;background:#f0fdf4;color:#1a5c4a;font-weight:700}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px}
+.label-note{color:#9ca3af;font-weight:400}
+input,select{width:100%;border:1px solid #d1d5db;border-radius:7px;padding:8px 11px;font-size:13px;color:#1a1a1a;outline:none;background:white;transition:border .15s;font-family:inherit}
+input:focus,select:focus{border-color:#1a5c4a;box-shadow:0 0 0 3px rgba(26,92,74,.08)}
+.computed-field{width:100%;border:1px solid #d1d5db;border-radius:7px;padding:8px 11px;font-size:13px;background:#f3f4f6;font-weight:700;color:#1a5c4a}
+.result-card{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #bbf7d0;border-radius:12px;padding:24px;margin-bottom:18px}
+.result-card.empty{background:#f9fafb;border-color:#e5e7eb}
+.result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.result-box{background:white;border-radius:8px;padding:12px 14px;text-align:center}
+.result-box.highlight{border:1.5px solid #1a5c4a}
+.result-box-label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.result-box-value{font-size:22px;font-weight:700}
+.result-box-sub{font-size:11px;color:#9ca3af;margin-top:2px}
+.result-row{background:white;border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border:1px solid #d1fae5}
+.result-row-label{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.result-row-value{font-size:20px;font-weight:700;color:#1a5c4a}
+.result-row-unit{font-size:13px;font-weight:400;color:#6b7280}
+.alert-box{margin-top:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400e}
+.fba-note{margin-top:6px;font-size:12px;font-weight:600}
+.empty-msg{color:#9ca3af;font-size:13px;text-align:center;padding:16px 0}
+.reset-btn{display:block;margin:0 auto;background:none;border:1px solid #d1d5db;border-radius:7px;padding:8px 20px;font-size:12px;color:#6b7280;cursor:pointer;font-family:inherit;transition:all .15s}
+.reset-btn:hover{border-color:#1a5c4a;color:#1a5c4a}
+@media(max-width:500px){.result-grid{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="logo"><div class="logo-icon">⬡</div><span class="logo-text">atomix</span></div>
+  <span class="sep">›</span>
+  <a href="index.html">← All Tools</a>
+</div>
+
+<div class="page-header">
+  <h1>⏱ Project Labor Calculator</h1>
+  <p>Estimate project duration for Barcoding, Amazon FBA, and Kitting</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-head">Project Type</div>
+    <div class="type-tabs">
+      <button class="type-btn active" data-type="Barcoding" onclick="setType('Barcoding',this)">Barcoding</button>
+      <button class="type-btn" data-type="Amazon FBA" onclick="setType('Amazon FBA',this)">Amazon FBA</button>
+      <button class="type-btn" data-type="Kitting" onclick="setType('Kitting',this)">Kitting</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Project Details</div>
+    <div class="grid-2" id="inputGrid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <div class="result-card empty" id="resultCard">
+    <div class="card-head" style="border-color:#d1fae5">Estimate</div>
+    <div class="empty-msg" id="emptyMsg">Fill in the project details above to see your estimate.</div>
+    <div id="resultContent" style="display:none"></div>
+  </div>
+
+<button class="reset-btn" onclick="resetAll()">↺ Reset All</button>
+
+</div>
+
+<script>
+const TYPES={
+  'Barcoding':{defaultRate:500,rateLabel:'Units/hr per person',unitLabel:'Total Units',unitPlaceholder:'e.g. 10000',rateDefault:500},
+  'Amazon FBA':{defaultRate:50,rateLabel:'Cartons/hr per person',unitLabel:'Total Master Cartons',unitPlaceholder:'e.g. 200',rateDefault:50},
+  'Kitting':{rateLabel:'Kits/hr per person (calculated)',unitLabel:'Total Kits',unitPlaceholder:'e.g. 5000',rateDefault:null},
+};
+let curType='Barcoding';
+let vals={units:'',workers:'',shiftHours:'8',rate:'500',touchPoints:'3',secsPerTouch:'10',skus:''};
+
+function setType(t,btn){
+  curType=t;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(t==='Barcoding')vals.rate='500';
+  else if(t==='Amazon FBA')vals.rate='50';
+  vals.units='';vals.skus='';
+  renderInputs();calc();
+}
+
+function renderInputs(){
+  const t=TYPES[curType];
+  const g=document.getElementById('inputGrid');
+  let html=`
+    <div><label>${t.unitLabel}</label><input type="number" min="0" placeholder="${t.unitPlaceholder}" value="${vals.units}" oninput="vals.units=this.value;calc()" id="inp-units"/></div>
+    <div><label># of Workers</label><input type="number" min="1" placeholder="e.g. 4" value="${vals.workers}" oninput="vals.workers=this.value;calc()" id="inp-workers"/></div>
+    <div><label>Shift Length (hours)</label><input type="number" min="1" max="24" step="0.5" value="${vals.shiftHours}" oninput="vals.shiftHours=this.value;calc()" id="inp-shift"/></div>`;
+  if(curType==='Barcoding'){
+    html+=`<div><label>${t.rateLabel} <span class="label-note">(default: 500)</span></label><input type="number" min="1" value="${vals.rate}" oninput="vals.rate=this.value;calc()" id="inp-rate"/></div>`;
+  } else if(curType==='Amazon FBA'){
+    html+=`<div><label>${t.rateLabel} <span class="label-note">(default: 50)</span></label><input type="number" min="1" value="${vals.rate}" oninput="vals.rate=this.value;calc()" id="inp-rate"/></div>
+    <div style="grid-column:1/-1"><label># of SKUs <span class="label-note">(flags complexity)</span></label><input type="number" min="1" placeholder="e.g. 8" value="${vals.skus}" oninput="vals.skus=this.value;calc()" id="inp-skus"/></div>`;
+  } else if(curType==='Kitting'){
+    const kr=vals.touchPoints&&vals.secsPerTouch?Math.round(3600/(parseFloat(vals.touchPoints)*parseFloat(vals.secsPerTouch))):0;
+    html+=`<div><label>Touch Points per Kit</label><input type="number" min="1" value="${vals.touchPoints}" oninput="vals.touchPoints=this.value;renderInputs();calc()" id="inp-tp"/></div>
+    <div><label>Seconds per Touch Point <span class="label-note">(default: 10s)</span></label><input type="number" min="1" value="${vals.secsPerTouch}" oninput="vals.secsPerTouch=this.value;renderInputs();calc()" id="inp-spt"/></div>
+    <div><label>Calculated Rate</label><div class="computed-field">${kr>0?kr+' kits/hr per person':'—'}</div></div>`;
+  }
+  g.innerHTML=html;
+}
+
+function calc(){
+  const totalUnits=parseFloat(vals.units);
+  const numWorkers=parseFloat(vals.workers);
+  const shift=parseFloat(vals.shiftHours)||8;
+  let effectiveRate;
+  if(curType==='Kitting'){
+    const tp=parseFloat(vals.touchPoints)||3,spt=parseFloat(vals.secsPerTouch)||10;
+    effectiveRate=Math.round(3600/(tp*spt));
+  } else {
+    effectiveRate=parseFloat(vals.rate);
+  }
+  const rc=document.getElementById('resultCard'),ec=document.getElementById('emptyMsg'),rc2=document.getElementById('resultContent');
+  const valid=totalUnits>0&&numWorkers>0&&effectiveRate>0&&shift>0;
+  if(!valid){rc.className='result-card empty';ec.style.display='block';rc2.style.display='none';return;}
+  rc.className='result-card';ec.style.display='none';rc2.style.display='block';
+  const totalCapPerHr=effectiveRate*numWorkers;
+  const totalHours=totalUnits/totalCapPerHr;
+  const shifts=totalHours/shift;
+  const unitsPerShift=totalCapPerHr*shift;
+  const perWorkerShift=effectiveRate*shift;
+  const unitWord=curType==='Amazon FBA'?'cartons':curType==='Kitting'?'kits':'units';
+  function fmtH(h){if(isNaN(h)||h<=0)return'—';const hrs=Math.floor(h);const mins=Math.round((h-hrs)*60);return hrs>0&&mins>0?`${hrs}h ${mins}m`:hrs>0?`${hrs}h`:`${mins}m`;}
+  function fmt2(n){return isNaN(n)?'—':n.toFixed(2);}
+  let skuNote='';
+  if(curType==='Amazon FBA'&&vals.skus){const s=parseInt(vals.skus);if(s<=5)skuNote=`<div class="fba-note" style="color:#065f46">✅ Low complexity (${s} SKUs) — rate looks good</div>`;else if(s<=15)skuNote=`<div class="fba-note" style="color:#92400e">⚠ Medium complexity (${s} SKUs) — consider reducing rate</div>`;else skuNote=`<div class="fba-note" style="color:#991b1b">🔴 High complexity (${s} SKUs) — recommend lower rate</div>`;}
+  let multiShiftNote=shifts>1?`<div class="alert-box">📅 This project spans <strong>${Math.ceil(shifts)} shifts</strong>. Plan accordingly for multi-day scheduling.</div>`:'';
+  rc2.innerHTML=`
+    <div class="result-grid">
+      <div class="result-box highlight">
+        <div class="result-box-label">Total Hours</div>
+        <div class="result-box-value" style="color:#1a5c4a">${fmtH(totalHours)}</div>
+        <div class="result-box-sub">${fmt2(totalHours)} hrs</div>
+      </div>
+      <div class="result-box">
+        <div class="result-box-label">Shifts to Complete</div>
+        <div class="result-box-value">${fmt2(shifts)}</div>
+        <div class="result-box-sub">@ ${shift}h shifts</div>
+      </div>
+      <div class="result-box">
+        <div class="result-box-label">Team Output/Hr</div>
+        <div class="result-box-value">${Math.round(totalCapPerHr).toLocaleString()}</div>
+        <div class="result-box-sub">${unitWord}/hr</div>
+      </div>
+    </div>
+    <div class="result-row" style="margin-bottom:10px">
+      <div><div class="result-row-label">Output per Full Shift</div><div class="result-row-value">${Math.round(unitsPerShift).toLocaleString()} <span class="result-row-unit">${unitWord}</span></div></div>
+      <div style="text-align:right"><div class="result-row-label">Per Worker / Shift</div><div class="result-row-value">${Math.round(perWorkerShift).toLocaleString()} <span class="result-row-unit">${unitWord}</span></div></div>
+    </div>
+    ${skuNote}${multiShiftNote}`;
+}
+
+function resetAll(){vals={units:'',workers:'',shiftHours:'8',rate:curType==='Amazon FBA'?'50':'500',touchPoints:'3',secsPerTouch:'10',skus:''};renderInputs();calc();}
+
+renderInputs();calc();
+</script>
+
+</body>
+</html>

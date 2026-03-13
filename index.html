@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Atomix Special Projects Tools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1118;--bg2:#111820;--bg3:#172030;--bg4:#1d2a3a;
+  --border:#1e2d3d;--border2:#253549;
+  --green:#3EBD84;--green-dim:#0d2218;--green-glow:rgba(62,189,132,0.18);
+  --teal:#2dd4bf;--teal-dim:#0a2220;
+  --blue:#4A9FD4;--blue-dim:#0d1e30;
+  --amber:#f59e0b;--amber-dim:#251a05;
+  --red:#f87171;--red-dim:#250d0d;
+  --purple:#a78bfa;--purple-dim:#1a1030;
+  --text:#e8f0f8;--text2:#7a9ab5;--text3:#3d5570;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.ambient-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35}
+.blob1{width:600px;height:400px;background:radial-gradient(circle,#3EBD8444,transparent 70%);top:-100px;left:-100px}
+.blob2{width:500px;height:500px;background:radial-gradient(circle,#4A9FD433,transparent 70%);bottom:-150px;right:-50px}
+.blob3{width:300px;height:300px;background:radial-gradient(circle,#2dd4bf22,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%)}
+.nav{position:sticky;top:0;z-index:100;background:rgba(12,17,24,0.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(30,45,61,0.8);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#0c1118;box-shadow:0 0 16px var(--green-glow)}
+.nav-logo-text{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.nav-logo-text span{color:var(--green)}
+.nav-center{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.04em}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-chip{font-size:10px;font-weight:700;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.admin-btn{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;border:1.5px solid var(--green);background:transparent;color:var(--green);transition:all .2s;display:flex;align-items:center;gap:6px}
+.admin-btn:hover{background:var(--green-dim);box-shadow:0 0 20px var(--green-glow)}
+.admin-btn.exit{border-color:var(--red);color:var(--red)}
+.admin-btn.exit:hover{background:var(--red-dim);box-shadow:none}
+.hero{position:relative;z-index:1;padding:72px 32px 52px;max-width:1100px;margin:0 auto}
+.hero-eyebrow{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.14em;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.hero-eyebrow-line{width:28px;height:2px;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:2px}
+.hero-title{font-size:clamp(32px,4.5vw,52px);font-weight:800;line-height:1.1;letter-spacing:-.8px;margin-bottom:18px}
+.hero-title .grad{background:linear-gradient(95deg,var(--green) 0%,var(--teal) 50%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:15px;color:var(--text2);max-width:520px;line-height:1.75;margin-bottom:36px}
+.hero-pills{display:flex;gap:10px;flex-wrap:wrap}
+.hero-pill{font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid;display:flex;align-items:center;gap:6px}
+.pill-green{color:var(--green);border-color:var(--green);background:var(--green-dim)}
+.pill-blue{color:var(--blue);border-color:var(--blue);background:var(--blue-dim)}
+.pill-teal{color:var(--teal);border-color:var(--teal);background:var(--teal-dim)}
+.section{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px 64px}
+.section-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-decoration:none;color:inherit;transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:16px}
+.tool-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,rgba(62,189,132,0.04));pointer-events:none}
+.tool-card:hover{border-color:var(--green);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px var(--green),0 0 32px var(--green-glow)}
+.tool-card:hover .card-arrow{transform:translateX(4px);opacity:1}
+.tool-card.coming{opacity:.55;cursor:default;pointer-events:none}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between}
+.card-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.card-icon-wrap.green{background:linear-gradient(135deg,var(--green-dim),#0d2a1e);border:1px solid rgba(62,189,132,0.2)}
+.card-icon-wrap.blue{background:linear-gradient(135deg,var(--blue-dim),#0a1a2a);border:1px solid rgba(74,159,212,0.2)}
+.card-icon-wrap.teal{background:linear-gradient(135deg,var(--teal-dim),#071c1a);border:1px solid rgba(45,212,191,0.2)}
+.card-icon-wrap.amber{background:linear-gradient(135deg,var(--amber-dim),#1a1205);border:1px solid rgba(245,158,11,0.2)}
+.card-icon-wrap.purple{background:linear-gradient(135deg,var(--purple-dim),#120a22);border:1px solid rgba(167,139,250,0.2)}
+.card-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.badge-live{background:rgba(62,189,132,0.15);color:var(--green);border:1px solid rgba(62,189,132,0.3)}
+.badge-soon{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:6px;letter-spacing:-.2px}
+.card-desc{font-size:13px;color:var(--text2);line-height:1.65}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap}
+.card-tag{font-size:10px;font-weight:600;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:20px}
+.card-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:14px;margin-top:auto}
+.card-open{font-size:12px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:6px}
+.card-arrow{transition:transform .2s,opacity .2s;opacity:.6}
+.card-coming-label{font-size:12px;color:var(--text3);font-weight:600}
+/* ADMIN */
+.admin-panel{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 32px 32px;display:none}
+.admin-panel.open{display:block}
+.admin-header{background:linear-gradient(135deg,#0d2218,#0a1e30);border:1px solid rgba(62,189,132,0.25);border-radius:16px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.admin-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--green),var(--teal));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 20px var(--green-glow)}
+.admin-title{font-size:18px;font-weight:800}
+.admin-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.admin-card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;overflow:hidden}
+.admin-card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3)}
+.admin-card-icon{font-size:16px}
+.admin-card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;flex:1}
+.admin-card-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px}
+.admin-card-body{padding:16px 18px}
+.admin-empty{font-size:13px;color:var(--text3);font-style:italic;padding:8px 0}
+.labor-member{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.labor-member:last-child{border-bottom:none}
+.labor-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.labor-name{font-size:13px;font-weight:600;flex:1}
+.labor-loc{font-size:11px;color:var(--text2)}
+.labor-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.badge-ot{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+.badge-lunch{background:rgba(249,115,22,0.15);color:#fb923c;border:1px solid rgba(249,115,22,0.3)}
+.badge-alert-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.3)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.badge-eod{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.order-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.order-row:last-child{border-bottom:none}
+.order-brand{font-size:13px;font-weight:700;flex:1}
+.order-type-sm{font-size:10px;color:var(--text3);font-weight:600}
+.order-due{font-size:11px;font-weight:600}
+.stage-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dept-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.dept-row:last-child{border-bottom:none}
+.dept-name-sm{color:var(--text2)}
+.dept-hrs{font-weight:700;color:var(--green)}
+.alert-strip{border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600}
+.alert-red{background:linear-gradient(90deg,rgba(248,113,113,0.08),transparent);border:1px solid rgba(248,113,113,0.2);color:var(--red)}
+.alert-amber{background:linear-gradient(90deg,rgba(245,158,11,0.08),transparent);border:1px solid rgba(245,158,11,0.2);color:var(--amber)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:300;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.pin-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:32px;width:300px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.8),0 0 40px var(--green-glow)}
+.pin-modal h3{font-size:18px;font-weight:800;margin-bottom:4px}
+.pin-modal p{font-size:13px;color:var(--text2);margin-bottom:20px}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:0 0 6px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:var(--border2);transition:all .15s}
+.pin-dot.filled{background:var(--green);box-shadow:0 0 10px var(--green-glow)}
+.pin-err{font-size:12px;color:var(--red);min-height:18px;margin-bottom:8px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.kbtn{padding:15px;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);cursor:pointer;font-size:18px;font-weight:700;color:var(--text);font-family:'Inter',sans-serif;transition:all .1s}
+.kbtn:hover{background:var(--bg4)}
+.kbtn:active{transform:scale(.96)}
+.kbtn.sm{font-size:12px;color:var(--text2);font-weight:600}
+.footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto}
+.footer-logo{font-size:13px;font-weight:700;color:var(--text3)}
+.footer-logo span{color:var(--green)}
+.footer-note{font-size:11px;color:var(--text3)}
+@media(max-width:720px){.admin-grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .hero{padding:48px 20px 36px}
+  .section,.admin-panel{padding-left:20px;padding-right:20px}
+  .nav{padding:0 20px}
+  .tool-grid{grid-template-columns:1fr}
+  .nav-center,.nav-chip{display:none}
+  .footer{padding:16px 20px;flex-direction:column;gap:6px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",
+    authDomain: "atomix-tools.firebaseapp.com",
+    projectId: "atomix-tools",
+    storageBucket: "atomix-tools.firebasestorage.app",
+    messagingSenderId: "211594945190",
+    appId: "1:211594945190:web:bf70681d9335816984ca67"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window._firestore=db;window._firestoreReady=true;
+  window._fsDoc=doc;window._fsGetDoc=getDoc;window._fsOnSnapshot=onSnapshot;
+  window.dispatchEvent(new Event('firestore-ready'));
+</script>
+
+<div class="ambient">
+  <div class="ambient-blob blob1"></div>
+  <div class="ambient-blob blob2"></div>
+  <div class="ambient-blob blob3"></div>
+</div>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">A</div>
+    <span class="nav-logo-text">atomix<span>.</span></span>
+  </a>
+  <span class="nav-center">Special Projects Tools</span>
+  <div class="nav-right">
+    <span class="nav-chip">Internal Use Only</span>
+    <button class="admin-btn" id="adminBtn" onclick="handleAdmin()">🔐 Admin</button>
+  </div>
+</nav>
+
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-header">
+    <div class="admin-icon">🛡</div>
+    <div>
+      <div class="admin-title">Admin Overview</div>
+      <div class="admin-sub">Live snapshot across all tools — Special Projects</div>
+    </div>
+  </div>
+  <div id="adminContent"><div style="padding:20px;color:var(--text3);font-size:13px">Loading data from Firebase...</div></div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div>Special Projects Team</div>
+  <h1 class="hero-title">Your team's tools,<br><span class="grad">one place.</span></h1>
+  <p class="hero-sub">Internal utilities built for the Atomix Special Projects & Retail team. Fast, focused, and always available — no logins, no apps to install.</p>
+  <div class="hero-pills">
+    <span class="hero-pill pill-green">⚡ Always Available</span>
+    <span class="hero-pill pill-blue">☁️ Cloud Synced</span>
+    <span class="hero-pill pill-teal">🔒 Internal Only</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Available Tools</div>
+  <div class="tool-grid">
+
+    <a href="labor-tracker.html" class="tool-card">
+      <div class="card-top">
+        <div class="card-icon-wrap green">👥</div>
+        <span class="card-badge badge-live">● Live</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Labor Tracker</div>
+        <div class="card-desc">Deploy staff across departments, track hours, log OT and lunch breaks. Maria Mode + daily reports for admin review.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag">drag & drop</span><span class="card-tag">hours</span><span class="card-tag">OT alerts</span><span class="card-tag">reports</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-open">Open tool <span class="card-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="retail-dashboard.html" class="tool-card">
+      <div class="card-top">
+        <div class="card-icon-wrap teal">📦</div>
+        <span class="card-badge badge-live">● Live</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Retail / B2B Dashboard</div>
+        <div class="card-desc">Manage daily and weekly orders, assign to team members, track stages from incoming to shipped. Nate Mode for full control.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag">orders</span><span class="card-tag">pipeline</span><span class="card-tag">assignments</span><span class="card-tag">brands</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-open">Open tool <span class="card-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="special-project-quote.html" class="tool-card">
+      <div class="card-top">
+        <div class="card-icon-wrap blue">💰</div>
+        <span class="card-badge badge-live">● Live</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Special Project Quote</div>
+        <div class="card-desc">Build client quotes with labor, materials catalog, and auto-calculated totals. Export as a clean PDF in one click.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag">quotes</span><span class="card-tag">materials</span><span class="card-tag">PDF export</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-open">Open tool <span class="card-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="labor-calculator.html" class="tool-card">
+      <div class="card-top">
+        <div class="card-icon-wrap amber">⏱</div>
+        <span class="card-badge badge-live">● Live</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Project Labor Calculator</div>
+        <div class="card-desc">Estimate how long a project takes. Supports Barcoding, Amazon FBA, and Kitting with adjustable rates and shift lengths.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag">barcoding</span><span class="card-tag">FBA</span><span class="card-tag">kitting</span><span class="card-tag">estimate</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-open">Open tool <span class="card-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="iq-bar-packing-slip.html" class="tool-card">
+      <div class="card-top">
+        <div class="card-icon-wrap purple">🧾</div>
+        <span class="card-badge badge-live">● Live</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">IQ Bar Packing Slip</div>
+        <div class="card-desc">Generate packing slips for IQ Bar orders with SKU lookup, shipping details, and print-ready PDF output. Manager mode for vendor editing.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag">packing slip</span><span class="card-tag">IQ Bar</span><span class="card-tag">print</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-open">Open tool <span class="card-arrow">→</span></span>
+      </div>
+    </a>
+
+    <div class="tool-card coming">
+      <div class="card-top">
+        <div class="card-icon-wrap green">📊</div>
+        <span class="card-badge badge-soon">Coming Soon</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Daily Output Log</div>
+        <div class="card-desc">Log units completed per department and generate shift summary reports for ops review.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag">units</span><span class="card-tag">output</span><span class="card-tag">reports</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-coming-label">In development</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-logo">atomix<span>.</span> Special Projects</div>
+  <div class="footer-note">Internal use only · atomixlogistics.com</div>
+</div>
+
+<div class="overlay" id="pinOverlay">
+  <div class="pin-modal">
+    <h3>Admin Access</h3>
+    <p>Enter your 4-digit admin PIN</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="keypad">
+      <button class="kbtn" data-k="1">1</button><button class="kbtn" data-k="2">2</button><button class="kbtn" data-k="3">3</button>
+      <button class="kbtn" data-k="4">4</button><button class="kbtn" data-k="5">5</button><button class="kbtn" data-k="6">6</button>
+      <button class="kbtn" data-k="7">7</button><button class="kbtn" data-k="8">8</button><button class="kbtn" data-k="9">9</button>
+      <button class="kbtn sm" data-k="cancel">Cancel</button>
+      <button class="kbtn" data-k="0">0</button>
+      <button class="kbtn sm" data-k="back">⌫</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_PIN='0202';
+let isAdmin=false,pinBuf='';
+let laborData=null,ordersData=[];
+let _unsubLabor=null,_unsubOrders=null; // track listeners so we can clean up
+
+function updateDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('filled',i<pinBuf.length);}
+
+function handleAdmin(){
+  if(isAdmin){exitAdmin();return;}
+  pinBuf='';document.getElementById('pinErr').textContent='';updateDots();
+  document.getElementById('pinOverlay').classList.add('open');
+}
+
+function exitAdmin(){
+  isAdmin=false;
+  // Unsubscribe live listeners when admin closes
+  if(_unsubLabor){_unsubLabor();_unsubLabor=null;}
+  if(_unsubOrders){_unsubOrders();_unsubOrders=null;}
+  document.getElementById('adminPanel').classList.remove('open');
+  const b=document.getElementById('adminBtn');b.innerHTML='🔐 Admin';b.className='admin-btn';
+}
+
+document.querySelectorAll('.kbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const k=btn.dataset.k;
+    if(k==='cancel'){document.getElementById('pinOverlay').classList.remove('open');return;}
+    if(k==='back'){pinBuf=pinBuf.slice(0,-1);updateDots();return;}
+    if(pinBuf.length>=4)return;
+    pinBuf+=k;updateDots();
+    if(pinBuf.length===4){
+      setTimeout(()=>{
+        if(pinBuf===ADMIN_PIN){
+          document.getElementById('pinOverlay').classList.remove('open');
+          isAdmin=true;
+          const b=document.getElementById('adminBtn');b.innerHTML='🔒 Exit Admin';b.className='admin-btn exit';
+          document.getElementById('adminPanel').classList.add('open');
+          // Show loading state immediately, then load data
+          document.getElementById('adminContent').innerHTML='<div style="padding:24px;color:var(--text3);font-size:13px;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:14px;height:14px;border:2px solid var(--green);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite"></span> Loading live data...</div>';
+          document.getElementById('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});
+          loadAdminData();
+        } else {
+          document.getElementById('pinErr').textContent='Incorrect PIN — try again';
+          pinBuf='';updateDots();
+        }
+      },150);
+    }
+  });
+});
+
+async function loadAdminData(){
+  // Fallback: try localStorage first while Firebase loads
+  try{const s=localStorage.getItem('atomix_labor_v5');if(s){laborData=JSON.parse(s);buildAdminPanel();}}catch(e){}
+  try{const s=localStorage.getItem('atomix_orders');if(s){ordersData=JSON.parse(s);buildAdminPanel();}}catch(e){}
+
+  if(!window._firestoreReady){
+    // Wait up to 4s for Firebase to be ready
+    await new Promise(resolve=>{
+      const t=setTimeout(resolve,4000);
+      window.addEventListener('firestore-ready',()=>{clearTimeout(t);resolve();},{once:true});
+    });
+    if(!window._firestoreReady)return; // still not ready, localStorage fallback already shown
+  }
+
+  try{
+    const [lSnap,oSnap]=await Promise.all([
+      window._fsGetDoc(window._fsDoc(window._firestore,'atomix','labor_tracker')),
+      window._fsGetDoc(window._fsDoc(window._firestore,'atomix','retail_dashboard'))
+    ]);
+    if(lSnap.exists())laborData=lSnap.data();
+    if(oSnap.exists())ordersData=oSnap.data().orders||[];
+    buildAdminPanel(); // render with fresh Firebase data
+
+    // Set up live listeners — clean up any old ones first
+    if(_unsubLabor)_unsubLabor();
+    if(_unsubOrders)_unsubOrders();
+    _unsubLabor=window._fsOnSnapshot(window._fsDoc(window._firestore,'atomix','labor_tracker'),(s)=>{
+      if(s.exists()&&isAdmin){laborData=s.data();buildAdminPanel();}
+    });
+    _unsubOrders=window._fsOnSnapshot(window._fsDoc(window._firestore,'atomix','retail_dashboard'),(s)=>{
+      if(s.exists()&&isAdmin){ordersData=s.data().orders||[];buildAdminPanel();}
+    });
+  }catch(e){
+    console.warn('Firebase admin load failed:',e);
+    buildAdminPanel(); // render whatever we have from localStorage
+  }
+}
+
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${m}/${d}/${y.slice(2)}`;}
+function daysUntil(s){if(!s)return null;return Math.ceil((new Date(s)-new Date(today()))/86400000);}
+const ini=n=>n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const fmtH=v=>{const n=parseFloat(v)||0;return n===0?'0h':n%1===0?n+'h':n.toFixed(1)+'h';};
+const AV_COLORS=[
+  {bg:'#1a2e3d',fg:'#4A9FD4'},{bg:'#1a3d2e',fg:'#3EBD84'},{bg:'#2e1a1a',fg:'#e05252'},
+  {bg:'#2e2a1a',fg:'#d4a04A'},{bg:'#1a1a3d',fg:'#7A7ADD'},{bg:'#2e1a2e',fg:'#c45AB0'},
+  {bg:'#1a2e2e',fg:'#4AC4C4'},{bg:'#252525',fg:'#aaa'},
+];
+const STAGE_COLORS={'Incoming / Received':'#3b82f6','In Prep':'#f59e0b','Staged / Ready':'#8b5cf6','Shipped / Complete':'#10b981'};
+const BASE_DEPTS=[{id:'kitting',name:'IQ Kitting',icon:'📦'},{id:'btbretail',name:'BTB / Retail',icon:'🏪'},{id:'dtc',name:'DTC Outbound',icon:'🚚'},{id:'receiving',name:'Receiving',icon:'📥'},{id:'other',name:'Other / SP',icon:'⚙️'}];
+
+function buildAdminPanel(){
+  const people=laborData?.people||[];
+  const data=laborData?.data||{};
+  const customDepts=laborData?.customDepts||[];
+  const todayKey=today();
+  const dayData=data[todayKey]||{};
+  const finalized=!!dayData['finalized'];
+  const allDepts=[...BASE_DEPTS,...customDepts.map(d=>typeof d==='string'?{name:d,icon:'📌'}:d)];
+
+  let alerts='';
+  const otPeople=people.filter(p=>{const h=dayData['hrs:'+p.id]||{};return Object.values(h).reduce((s,v)=>s+(parseFloat(v)||0),0)>8;});
+  const lunchPeople=people.filter(p=>dayData['loc:'+p.id]==='__LUNCH__');
+  if(otPeople.length) alerts+=`<div class="alert-strip alert-amber">⚠ ${otPeople.length} member${otPeople.length>1?'s':''} over 8h today: ${otPeople.map(p=>p.name.split(' ')[0]).join(', ')}</div>`;
+  if(lunchPeople.length) alerts+=`<div class="alert-strip" style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);color:#fb923c;">🍽 ${lunchPeople.length} on lunch right now</div>`;
+
+  // Compute totalHrsToday up front so it's available for the labor card header
+  const totalHrsToday=people.reduce((sum,p)=>{
+    const hrs=dayData['hrs:'+p.id]||{};
+    return sum+Object.values(hrs).reduce((s,v)=>s+(parseFloat(v)||0),0);
+  },0);
+
+  let laborHTML='';
+  if(!people.length){laborHTML='<div class="admin-empty">No team data yet. Open Labor Tracker to get started.</div>';}
+  else{
+    // Sort: deployed first, then lunch, then undeployed, then EOD
+    const show=[...people.filter(p=>{const l=dayData['loc:'+p.id];return l&&l!=='__EOD__'&&l!=='__LUNCH__';}),
+                ...people.filter(p=>dayData['loc:'+p.id]==='__LUNCH__'),
+                ...people.filter(p=>!dayData['loc:'+p.id]),
+                ...people.filter(p=>dayData['loc:'+p.id]==='__EOD__')].slice(0,8);
+    show.forEach((p,i)=>{
+      const c=AV_COLORS[i%AV_COLORS.length];
+      const loc=dayData['loc:'+p.id];
+      const hrs=dayData['hrs:'+p.id]||{};
+      const total=Object.values(hrs).reduce((s,v)=>s+(parseFloat(v)||0),0);
+      const isOT=total>8,isAlert=total>10,isLunch=loc==='__LUNCH__',isEOD=loc==='__EOD__';
+      let badge='';
+      if(isAlert) badge=`<span class="labor-badge badge-alert-red">🔴 ${fmtH(total)}</span>`;
+      else if(isOT) badge=`<span class="labor-badge badge-ot">OT ${fmtH(total)}</span>`;
+      else if(isLunch) badge=`<span class="labor-badge badge-lunch">🍽 Lunch</span>`;
+      else if(isEOD) badge=`<span class="labor-badge badge-eod">EOD</span>`;
+      else if(total>0) badge=`<span style="font-size:10px;font-weight:700;color:var(--green)">${fmtH(total)}</span>`;
+      laborHTML+=`<div class="labor-member"><div class="labor-av" style="background:${c.bg};color:${c.fg}">${ini(p.name)}</div><div style="flex:1"><div class="labor-name">${p.name}</div><div class="labor-loc">${isLunch?'🍽 On Lunch':isEOD?'⏹ Clocked Out':(loc||'Undeployed')}</div></div>${badge}</div>`;
+    });
+    if(people.length>8) laborHTML+=`<div style="font-size:11px;color:var(--text3);margin-top:8px">+${people.length-8} more → <a href="labor-tracker.html" style="color:var(--green);text-decoration:none">Open Tracker</a></div>`;
+  }
+
+  let deptHTML='';
+  allDepts.forEach(dept=>{
+    const dname=dept.name||dept;
+    const t=people.reduce((s,p)=>{const h=dayData['hrs:'+p.id]||{};return s+(parseFloat(h[dname])||0);},0);
+    if(t===0)return;
+    deptHTML+=`<div class="dept-row"><span class="dept-name-sm">${dept.icon||'📌'} ${dname}</span><span class="dept-hrs">${fmtH(t)}</span></div>`;
+  });
+  if(!deptHTML) deptHTML='<div class="admin-empty">No hours logged today yet.</div>';
+
+  const activeOrders=ordersData.filter(o=>o.stage!=='Shipped / Complete').sort((a,b)=>(a.dueDate||'9999')>(b.dueDate||'9999')?1:-1);
+  // Compute urgent BEFORE building the header that references it
+  const urgentOrders=activeOrders.filter(o=>{const d=daysUntil(o.dueDate);return d!==null&&d<=1;});
+  let ordersHTML='';
+  if(!activeOrders.length){ordersHTML='<div class="admin-empty">No active orders. Open the Retail Dashboard to add orders.</div>';}
+  else{
+    activeOrders.slice(0,7).forEach(o=>{
+      const brand=o.brand==='Other'?o.customBrand:o.brand;
+      const days=daysUntil(o.dueDate);
+      const overdue=days!==null&&days<0,dueToday=days===0;
+      const sc=STAGE_COLORS[o.stage]||'#6b7280';
+      const dueColor=overdue?'var(--red)':dueToday?'var(--amber)':'var(--text2)';
+      const dueStr=o.dueDate?(overdue?`⚠ Overdue ${Math.abs(days)}d`:dueToday?'Due Today':`Due ${fmtDate(o.dueDate)}`):' —';
+      ordersHTML+=`<div class="order-row"><div class="stage-dot" style="background:${sc}"></div><div style="flex:1"><div class="order-brand">${brand||'—'}</div><div class="order-type-sm">${o.type} · ${o.stage.split(' / ')[0]}</div></div><div class="order-due" style="color:${dueColor}">${dueStr}</div></div>`;
+    });
+    if(activeOrders.length>7) ordersHTML+=`<div style="font-size:11px;color:var(--text3);margin-top:8px">+${activeOrders.length-7} more → <a href="retail-dashboard.html" style="color:var(--teal);text-decoration:none">Open Dashboard</a></div>`;
+  }
+
+  document.getElementById('adminContent').innerHTML=`
+  ${alerts}
+  <div class="admin-grid">
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">👥</span><span class="admin-card-title">Today's Labor</span><span class="admin-card-count" style="background:var(--green-dim);color:var(--green)">${people.length} staff · ${fmtH(totalHrsToday)}</span></div>
+      <div class="admin-card-body">${laborHTML}</div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">📊</span><span class="admin-card-title">Hours by Department</span>${finalized?'<span class="admin-card-count" style="background:var(--green-dim);color:var(--green)">✓ Finalized</span>':'<span class="admin-card-count" style="background:var(--bg3);color:var(--text3)">In Progress</span>'}</div>
+      <div class="admin-card-body">${deptHTML}</div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">📦</span><span class="admin-card-title">Active Orders</span><span class="admin-card-count" style="background:rgba(45,212,191,0.1);color:var(--teal)">${activeOrders.length} active${urgentOrders.length?' · '+urgentOrders.length+' urgent':''}</span></div>
+      <div class="admin-card-body">${ordersHTML}</div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">🔗</span><span class="admin-card-title">Quick Access</span></div>
+      <div class="admin-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${[['labor-tracker.html','👥','Labor Tracker','var(--green)'],['retail-dashboard.html','📦','Retail Dashboard','var(--teal)'],['special-project-quote.html','💰','Project Quote','var(--blue)'],['labor-calculator.html','⏱','Labor Calc','var(--amber)'],['iq-bar-packing-slip.html','🧾','IQ Bar Slip','var(--purple)']].map(([href,icon,name,color])=>`
+            <a href="${href}" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px;text-decoration:none;display:flex;flex-direction:column;gap:6px;transition:border-color .2s" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='var(--border2)'">
+              <span style="font-size:20px">${icon}</span>
+              <span style="font-size:12px;font-weight:700;color:var(--text)">${name}</span>
+            </a>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Firebase is loaded read-only on this page.
+// Data is only fetched when admin panel opens via loadAdminData().
+</script>
+</body>
+</html>
