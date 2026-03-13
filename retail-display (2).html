@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Atomix — Order Display</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070c12;--bg2:#0d1520;--bg3:#112030;--bg4:#172840;
+  --border:#1a2d42;--border2:#203550;
+  --green:#3EBD84;--green-dim:#071a10;
+  --teal:#2dd4bf;
+  --blue:#4A9FD4;
+  --amber:#f59e0b;
+  --red:#f87171;
+  --purple:#a78bfa;
+  --text:#e8f4ff;--text2:#6a90b0;--text3:#2d4a62;
+}
+html,body{height:100vh;width:100vw;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(45,212,191,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(45,212,191,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(62,189,132,0.06),transparent),radial-gradient(ellipse 50% 50% at 90% 90%,rgba(74,159,212,0.05),transparent);}
+
+/* TOPBAR */
+.topbar{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:46px;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(7,12,18,0.95);backdrop-filter:blur(12px);}
+.tb-left{display:flex;align-items:center;gap:12px}
+.logo{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo span{color:var(--green)}
+.tb-sep{width:1px;height:14px;background:var(--border2)}
+.page-title{font-size:11px;font-weight:600;color:var(--text3)}
+.tb-center{display:flex;align-items:center;gap:6px}
+.filter-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.person-tabs{display:flex;gap:4px}
+.person-tab{padding:4px 12px;border-radius:20px;border:1.5px solid var(--border2);background:transparent;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;white-space:nowrap}
+.person-tab:hover{border-color:var(--teal);color:var(--teal)}
+.person-tab.active{color:#070c12;border-color:transparent}
+.tb-right{display:flex;align-items:center;gap:10px}
+.live-pip{display:flex;align-items:center;gap:5px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(62,189,132,0.5)}50%{box-shadow:0 0 0 5px rgba(62,189,132,0)}}
+.live-label{font-size:10px;font-weight:700;color:var(--green)}
+.clock{font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text2)}
+.mgmt-link{font-size:10px;font-weight:700;color:var(--text3);text-decoration:none;padding:4px 10px;border:1px solid var(--border2);border-radius:20px;transition:all .2s}
+.mgmt-link:hover{color:var(--teal);border-color:var(--teal)}
+
+/* PAGE — full height minus topbar, no scroll */
+.page{position:relative;z-index:1;height:calc(100vh - 46px);display:flex;flex-direction:column;padding:8px 14px;gap:7px;overflow:hidden;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;flex-shrink:0;}
+.stat-tile{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:7px 12px;position:relative;overflow:hidden;}
+.stat-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+.st-blue::before{background:var(--blue)}.st-amber::before{background:var(--amber)}.st-purple::before{background:var(--purple)}.st-green::before{background:var(--green)}.st-red::before{background:var(--red)}.st-teal::before{background:var(--teal)}
+.stat-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.stat-val{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;line-height:1}
+
+/* OVERDUE BANNER */
+.overdue-bar{background:linear-gradient(90deg,rgba(248,113,113,0.1),rgba(248,113,113,0.03));border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:5px 12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;}
+.overdue-bar.show{display:flex}
+.ob-label{font-size:11px;font-weight:800;color:var(--red);white-space:nowrap}
+.ob-items{display:flex;gap:5px;flex-wrap:wrap;flex:1}
+.ob-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2);white-space:nowrap}
+
+/* CONTENT — pipeline + sidebar */
+.content{flex:1;display:grid;grid-template-columns:1fr 210px;gap:8px;min-height:0;}
+
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;min-height:0;}
+.p-col{background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.p-col-head{padding:7px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.p-col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.p-col-name{font-size:11px;font-weight:700;flex:1;letter-spacing:.02em}
+.p-col-count{font-size:11px;font-weight:800;padding:1px 8px;border-radius:10px}
+.p-col-body{flex:1;padding:7px;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+
+/* Card grid — wraps cards so 26 orders show in a tiled grid */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:5px;align-content:start;overflow-y:auto;flex:1;}
+.cards-grid::-webkit-scrollbar{width:3px}
+.cards-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.oc-next-btn{font-size:9px;font-weight:800;padding:1px 6px;border-radius:6px;border:none;cursor:pointer;margin-left:auto;font-family:'Inter',sans-serif;transition:opacity .15s;}
+.oc-next-btn:hover{opacity:.75}
+
+/* Compact card */
+.oc{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 8px;min-width:0;transition:border-color .15s;}
+.oc.due-today{border-color:rgba(245,158,11,0.45);background:rgba(245,158,11,0.03)}
+.oc.overdue{border-color:rgba(248,113,113,0.45);background:rgba(248,113,113,0.03)}
+.oc-brand{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:1px}
+.oc-po{font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;line-height:1.2}
+.oc-footer{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.oc-due{font-size:8px;font-weight:700;padding:1px 5px;border-radius:7px;white-space:nowrap}
+.oc-who{font-size:8px;font-weight:700;padding:1px 5px;border-radius:7px;white-space:nowrap}
+.due-ok{background:rgba(45,212,191,0.08);color:var(--teal)}
+.due-warn{background:rgba(245,158,11,0.1);color:var(--amber)}
+.due-over{background:rgba(248,113,113,0.1);color:var(--red)}
+.empty-col{font-size:11px;color:var(--text3);text-align:center;padding:20px 8px;font-style:italic}
+
+/* RIGHT PANEL */
+.right-panel{display:flex;flex-direction:column;gap:7px;min-height:0;overflow:hidden;}
+.rp-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.rp-head{padding:7px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.rp-icon{font-size:12px}
+.rp-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;flex:1;color:var(--text2)}
+.rp-body{padding:8px 10px;overflow-y:auto;flex:1;}
+.rp-body::-webkit-scrollbar{width:2px}
+.rp-body::-webkit-scrollbar-thumb{background:var(--border2)}
+.person-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);}
+.person-row:last-child{border-bottom:none}
+.pr-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;flex-shrink:0}
+.pr-name{font-size:11px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-count{font-size:12px;font-weight:800;flex-shrink:0}
+.pr-mini-row{display:flex;align-items:center;gap:3px;padding:2px 0 2px 31px;}
+.pr-mini-brand{font-size:9px;font-weight:600;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-mini-stage{font-size:8px;font-weight:700;padding:1px 4px;border-radius:5px;white-space:nowrap}
+.pr-mini-due{font-size:8px;font-weight:700;padding:1px 4px;border-radius:5px;white-space:nowrap}
+.type-bar-row{display:flex;align-items:center;gap:6px;padding:3px 0}
+.type-bar-label{font-size:9px;font-weight:600;color:var(--text2);width:72px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.type-bar-track{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.type-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.type-bar-count{font-size:10px;font-weight:700;width:16px;text-align:right;flex-shrink:0}
+
+/* WEEK STRIP */
+.week-strip{flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.ws-head{padding:5px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.ws-title{font-size:10px;font-weight:700;color:var(--text2)}
+.ws-nav{display:flex;align-items:center;gap:6px}
+.ws-nav button{border:1px solid var(--border2);background:var(--bg3);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:11px;color:var(--text);font-family:'Inter',sans-serif;}
+.ws-nav button:hover{background:var(--bg4)}
+.ws-label{font-size:10px;font-weight:600;color:var(--text3);min-width:120px;text-align:center}
+.ws-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.ws-day{border-right:1px solid var(--border);min-height:48px;max-height:65px;overflow:hidden}
+.ws-day:last-child{border-right:none}
+.ws-day-head{padding:3px 5px;border-bottom:1px solid var(--border);background:var(--bg3);text-align:center}
+.ws-day-name{font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.ws-day-date{font-size:10px;font-weight:700;color:var(--text2)}
+.ws-day.today .ws-day-head{background:var(--green-dim)}
+.ws-day.today .ws-day-name,.ws-day.today .ws-day-date{color:var(--green)}
+.ws-chips{padding:3px 4px;display:flex;flex-direction:column;gap:2px}
+.ws-chip{font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px;border:1px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-empty{font-size:8px;color:var(--text3);text-align:center;padding:5px 0}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  const app=initializeApp({apiKey:"AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",authDomain:"atomix-tools.firebaseapp.com",projectId:"atomix-tools",storageBucket:"atomix-tools.firebasestorage.app",messagingSenderId:"211594945190",appId:"1:211594945190:web:bf70681d9335816984ca67"});
+  const db=getFirestore(app);
+  window._fsOnSnapshot=onSnapshot;window._fsDoc=doc;window._fsSetDoc=setDoc;window._firestore=db;window._firestoreReady=true;
+  window.dispatchEvent(new Event('firestore-ready'));
+</script>
+
+<div class="topbar">
+  <div class="tb-left">
+    <div class="logo">atomix<span>.</span></div>
+    <div class="tb-sep"></div>
+    <div class="page-title">Order Display</div>
+  </div>
+  <div class="tb-center">
+    <span class="filter-label">View:</span>
+    <div class="person-tabs" id="personTabs"></div>
+  </div>
+  <div class="tb-right">
+    <div class="live-pip"><div class="live-dot"></div><span class="live-label">Live</span></div>
+    <span class="clock" id="clock"></span>
+    <a href="retail-dashboard.html" class="mgmt-link">⚙ Manage</a>
+  </div>
+</div>
+
+<div class="page">
+  <div class="stats-row" id="statsRow"></div>
+  <div class="overdue-bar" id="overdueBar"><span class="ob-label">⚠ Overdue:</span><div class="ob-items" id="overdueItems"></div></div>
+  <div class="content">
+    <div class="pipeline" id="pipeline"></div>
+    <div class="right-panel" id="rightPanel"></div>
+  </div>
+  <div class="week-strip">
+    <div class="ws-head">
+      <div class="ws-title">📅 This Week</div>
+      <div class="ws-nav">
+        <button id="wPrev">←</button>
+        <div class="ws-label" id="weekLabel"></div>
+        <button id="wNext">→</button>
+      </div>
+    </div>
+    <div class="ws-grid" id="weekGrid"></div>
+  </div>
+</div>
+
+<script>
+const STAGES=['Incoming / Received','In Prep','Staged / Ready'];
+const STAGE_COLORS={'Incoming / Received':'#4A9FD4','In Prep':'#f59e0b','Staged / Ready':'#a78bfa'};
+const STAGE_SHORT={'Incoming / Received':'Incoming','In Prep':'In Prep','Staged / Ready':'Staged'};
+const MEMBER_COLORS=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#f87171','#2dd4bf','#fb923c','#a78bfa','#34d399','#60a5fa'];
+const TYPE_COLORS={'B2B':'#4A9FD4','Retail':'#10b981','DTC':'#f59e0b','Amazon FBA':'#a78bfa','Special Project':'#f87171'};
+
+let orders=[],team=[],selectedPerson='All',weekOffset=0;
+
+function updateClock(){const n=new Date();const h=n.getHours()%12||12,m=String(n.getMinutes()).padStart(2,'0'),ap=n.getHours()>=12?'PM':'AM';document.getElementById('clock').textContent=`${h}:${m} ${ap}`;}
+updateClock();setInterval(updateClock,1000);
+
+function initLive(){
+  window._fsOnSnapshot(window._fsDoc(window._firestore,'atomix','retail_dashboard'),snap=>{
+    if(snap.exists()){const d=snap.data();orders=d.orders||[];team=d.team?.length?d.team:['Edwin','Maria Luna'];renderAll();}
+  });
+}
+if(window._firestoreReady){initLive();}
+else{window.addEventListener('firestore-ready',initLive,{once:true});}
+
+function today(){return new Date().toISOString().split('T')[0];}
+function daysUntil(s){if(!s)return null;return Math.ceil((new Date(s)-new Date(today()))/86400000);}
+function fmtDate(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${m}/${d}/${y.slice(2)}`;}
+function memberColor(name){if(!name)return'#6b7280';const i=team.indexOf(name);return MEMBER_COLORS[i>=0?i%MEMBER_COLORS.length:0];}
+function ini(n){return(n||'?').trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function dueInfo(dueDate){
+  const d=daysUntil(dueDate);
+  if(d===null)return{cls:'due-ok',txt:'No date',isOver:false,isToday:false};
+  if(d<0)return{cls:'due-over',txt:`${Math.abs(d)}d over`,isOver:true,isToday:false};
+  if(d===0)return{cls:'due-warn',txt:'Today',isOver:false,isToday:true};
+  if(d===1)return{cls:'due-warn',txt:'Tomorrow',isOver:false,isToday:false};
+  return{cls:'due-ok',txt:fmtDate(dueDate),isOver:false,isToday:false};
+}
+function filteredOrders(){
+  const active=orders.filter(o=>STAGES.includes(o.stage));
+  if(selectedPerson==='All')return active;
+  if(selectedPerson==='Unassigned')return active.filter(o=>!o.assignee);
+  return active.filter(o=>o.assignee===selectedPerson);
+}
+
+function renderTabs(){
+  const tabs=document.getElementById('personTabs');
+  ['All',...team,'Unassigned'].forEach(p=>{
+    const isActive=p===selectedPerson;
+    const mc=p==='All'?'var(--teal)':p==='Unassigned'?'var(--text3)':memberColor(p);
+    const btn=document.createElement('button');btn.className='person-tab'+(isActive?' active':'');
+    btn.style.cssText=isActive?`background:${mc};color:#070c12`:`color:${mc};border-color:${mc}44`;
+    btn.textContent=p;btn.onclick=()=>selectPerson(p);
+    tabs.appendChild(btn);
+  });
+}
+function selectPerson(p){selectedPerson=p;document.getElementById('personTabs').innerHTML='';renderAll();}
+
+function renderStats(){
+  const fo=filteredOrders();const todayStr=today();
+  const vals=[
+    {l:'Incoming',v:fo.filter(o=>o.stage===STAGES[0]).length,c:'var(--blue)',cls:'st-blue'},
+    {l:'In Prep',v:fo.filter(o=>o.stage===STAGES[1]).length,c:'var(--amber)',cls:'st-amber'},
+    {l:'Staged',v:fo.filter(o=>o.stage===STAGES[2]).length,c:'var(--purple)',cls:'st-purple'},
+    {l:'Due Today',v:fo.filter(o=>o.dueDate===todayStr).length,c:'var(--green)',cls:'st-green'},
+    {l:'Overdue',v:fo.filter(o=>{const d=daysUntil(o.dueDate);return d!==null&&d<0;}).length,c:'var(--red)',cls:'st-red'},
+    {l:'Unassigned',v:fo.filter(o=>!o.assignee).length,c:'var(--teal)',cls:'st-teal'},
+  ];
+  document.getElementById('statsRow').innerHTML=vals.map(s=>
+    `<div class="stat-tile ${s.cls}"><div class="stat-label">${s.l}</div><div class="stat-val" style="color:${s.c}">${s.v}</div></div>`
+  ).join('');
+}
+
+function renderOverdue(){
+  const fo=filteredOrders();
+  const ov=fo.filter(o=>{const d=daysUntil(o.dueDate);return d!==null&&d<0;});
+  const bar=document.getElementById('overdueBar');
+  bar.classList.toggle('show',ov.length>0);
+  document.getElementById('overdueItems').innerHTML=ov.map(o=>
+    `<span class="ob-chip">${o.brand}${o.assignee?` · ${o.assignee.split(' ')[0]}`:''} · ${Math.abs(daysUntil(o.dueDate))}d</span>`
+  ).join('');
+}
+
+function advanceStage(id){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  const idx=STAGES.indexOf(o.stage);if(idx>=STAGES.length-1)return;
+  o.stage=STAGES[idx+1];
+  if(window._firestoreReady){
+    window._fsSetDoc(window._fsDoc(window._firestore,'atomix','retail_dashboard'),{orders,updatedAt:Date.now()},{merge:true})
+      .catch(e=>console.error('Save failed:',e));
+  }
+  renderAll();
+}
+
+function renderPipeline(){
+  const el=document.getElementById('pipeline');el.innerHTML='';
+  const fo=filteredOrders();
+  STAGES.forEach(stage=>{
+    const col=STAGE_COLORS[stage];
+    const stageOrders=fo.filter(o=>o.stage===stage);
+    const div=document.createElement('div');div.className='p-col';
+    div.innerHTML=`<div class="p-col-head"><div class="p-col-dot" style="background:${col};box-shadow:0 0 6px ${col}88"></div><div class="p-col-name">${stage}</div><span class="p-col-count" style="background:${col}18;color:${col}">${stageOrders.length}</span></div><div class="p-col-body"><div class="cards-grid"></div></div>`;
+    el.appendChild(div);
+    const grid=div.querySelector('.cards-grid');
+    if(!stageOrders.length){grid.innerHTML='<div class="empty-col">No orders</div>';return;}
+    stageOrders.forEach(o=>{
+      const {cls,txt,isOver,isToday}=dueInfo(o.dueDate);
+      const mc=memberColor(o.assignee);
+      const isLast=STAGES.indexOf(stage)===STAGES.length-1;
+      const showNext=selectedPerson!=='All'; // show → Next in personal views
+      const card=document.createElement('div');
+      card.className='oc'+(isOver?' overdue':isToday?' due-today':'');
+      card.innerHTML=`
+        <div class="oc-brand">${o.brand}</div>
+        <div class="oc-po">${o.po||'—'}</div>
+        <div class="oc-footer">
+          <span class="oc-due ${cls}">${txt}</span>
+          ${o.assignee?`<span class="oc-who" style="background:${mc}18;color:${mc}">${o.assignee.split(' ')[0]}</span>`:''}
+          ${showNext&&!isLast?`<button class="oc-next-btn" style="background:${col}22;color:${col}" onclick="event.stopPropagation();advanceStage('${o.id}')">→</button>`:''}
+        </div>`;
+      grid.appendChild(card);
+    });
+  });
+}
+
+function renderRightPanel(){
+  const fo=filteredOrders();
+  const el=document.getElementById('rightPanel');el.innerHTML='';
+
+  // Team block
+  const teamBlock=document.createElement('div');teamBlock.className='rp-block';teamBlock.style.flex='1';
+  const peopleToShow=selectedPerson==='All'?team:selectedPerson==='Unassigned'?[]:team.filter(m=>m===selectedPerson);
+  let html=`<div class="rp-head"><span class="rp-icon">👥</span><span class="rp-title">Team</span></div><div class="rp-body">`;
+  if(selectedPerson==='Unassigned'){
+    html+=`<div class="person-row"><div class="pr-av" style="background:var(--bg4);color:var(--text3)">?</div><div class="pr-name">Unassigned</div><span class="pr-count" style="color:var(--text3)">${fo.length}</span></div>`;
+    fo.slice(0,10).forEach(o=>{
+      const {cls,txt}=dueInfo(o.dueDate);const sc=STAGE_COLORS[o.stage];
+      html+=`<div class="pr-mini-row"><div class="pr-mini-brand">${o.brand}</div><span class="pr-mini-stage" style="background:${sc}18;color:${sc}">${STAGE_SHORT[o.stage]}</span><span class="pr-mini-due ${cls}">${txt}</span></div>`;
+    });
+  } else {
+    peopleToShow.forEach(member=>{
+      const mc=memberColor(member);
+      const myOrders=orders.filter(o=>o.assignee===member&&STAGES.includes(o.stage));
+      html+=`<div class="person-row"><div class="pr-av" style="background:${mc}18;color:${mc}">${ini(member)}</div><div class="pr-name">${member}</div><span class="pr-count" style="color:${mc}">${myOrders.length}</span></div>`;
+      myOrders.slice(0,6).forEach(o=>{
+        const {cls,txt}=dueInfo(o.dueDate);const sc=STAGE_COLORS[o.stage];
+        html+=`<div class="pr-mini-row"><div class="pr-mini-brand">${o.brand}</div><span class="pr-mini-stage" style="background:${sc}18;color:${sc}">${STAGE_SHORT[o.stage]}</span><span class="pr-mini-due ${cls}">${txt}</span></div>`;
+      });
+      if(myOrders.length>6)html+=`<div class="pr-mini-row"><div style="font-size:9px;color:var(--text3)">+${myOrders.length-6} more</div></div>`;
+    });
+    if(!peopleToShow.length)html+='<div style="font-size:11px;color:var(--text3);font-style:italic;padding:8px 0">No team members</div>';
+  }
+  html+='</div>';
+  teamBlock.innerHTML=html;
+  el.appendChild(teamBlock);
+
+  // Type breakdown
+  const typeCounts={};fo.forEach(o=>{typeCounts[o.type]=(typeCounts[o.type]||0)+1;});
+  const maxType=Math.max(1,...Object.values(typeCounts));
+  const typeBlock=document.createElement('div');typeBlock.className='rp-block';typeBlock.style.flexShrink='0';
+  let thtml=`<div class="rp-head"><span class="rp-icon">📊</span><span class="rp-title">Types</span></div><div class="rp-body">`;
+  Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).forEach(([type,cnt])=>{
+    const col=TYPE_COLORS[type]||'var(--teal)';const pct=Math.round(cnt/maxType*100);
+    thtml+=`<div class="type-bar-row"><div class="type-bar-label">${type}</div><div class="type-bar-track"><div class="type-bar-fill" style="width:${pct}%;background:${col}"></div></div><div class="type-bar-count" style="color:${col}">${cnt}</div></div>`;
+  });
+  if(!Object.keys(typeCounts).length)thtml+='<div style="font-size:10px;color:var(--text3);font-style:italic">No orders</div>';
+  thtml+='</div>';
+  typeBlock.innerHTML=thtml;
+  el.appendChild(typeBlock);
+}
+
+function getWeekDays(offset){
+  const d=new Date();d.setHours(0,0,0,0);const day=d.getDay();
+  const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1)+(offset*7));
+  return Array.from({length:7},(_,i)=>{const x=new Date(mon);x.setDate(mon.getDate()+i);return x;});
+}
+function renderWeek(){
+  const days=getWeekDays(weekOffset);
+  document.getElementById('weekLabel').textContent=`${days[0].toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+  const grid=document.getElementById('weekGrid');grid.innerHTML='';
+  const todayStr=today();const fo=filteredOrders();
+  days.forEach(d=>{
+    const ds=d.toISOString().split('T')[0];const isToday=ds===todayStr;
+    const dayOrders=fo.filter(o=>o.dueDate===ds);
+    const col=document.createElement('div');col.className='ws-day'+(isToday?' today':'');
+    col.innerHTML=`<div class="ws-day-head"><div class="ws-day-name">${d.toLocaleDateString(undefined,{weekday:'short'})}</div><div class="ws-day-date">${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div></div><div class="ws-chips"></div>`;
+    grid.appendChild(col);
+    const chips=col.querySelector('.ws-chips');
+    if(!dayOrders.length){chips.innerHTML='<div class="ws-empty">—</div>';return;}
+    dayOrders.slice(0,3).forEach(o=>{
+      const sc=STAGE_COLORS[o.stage]||'#6b7280';
+      const chip=document.createElement('div');chip.className='ws-chip';
+      chip.style.cssText=`background:${sc}18;color:${sc};border-color:${sc}33`;
+      chip.textContent=o.brand||o.po||'Order';chips.appendChild(chip);
+    });
+    if(dayOrders.length>3){const m=document.createElement('div');m.className='ws-empty';m.textContent=`+${dayOrders.length-3}`;chips.appendChild(m);}
+  });
+}
+
+document.getElementById('wPrev').addEventListener('click',()=>{weekOffset--;renderWeek();});
+document.getElementById('wNext').addEventListener('click',()=>{weekOffset++;renderWeek();});
+
+function renderAll(){renderTabs();renderStats();renderOverdue();renderPipeline();renderRightPanel();renderWeek();}
+</script>
+</body>
+</html>
