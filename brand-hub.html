@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Hub — Atomix Special Projects</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d0c;
+  --surface: #111412;
+  --surface2: #171a17;
+  --surface3: #1e221e;
+  --border: #252a25;
+  --border2: #2e352e;
+  --green: #4ade80;
+  --green-dim: #22c55e;
+  --green-muted: #14532d;
+  --green-glow: rgba(74,222,128,0.08);
+  --teal: #2dd4bf;
+  --teal-muted: #134e4a;
+  --text: #e2e8e2;
+  --text-muted: #6b7a6b;
+  --text-dim: #3d4a3d;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --radius: 5px;
+  --radius-lg: 9px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  min-height: 100vh;
+}
+body::after {
+  content:'';
+  position:fixed;inset:0;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(74,222,128,0.04) 0%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* HEADER */
+header {
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(11,13,12,0.96);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo-mark {
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--green), var(--teal));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 13px;
+  color: #0b0d0c;
+}
+.logo-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 15px;
+  letter-spacing: -0.01em;
+}
+.logo-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.badge-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-muted);
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 20px;
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; border: none;
+  transition: all 0.15s ease;
+}
+.btn-primary {
+  background: var(--green); color: #0b0d0c;
+}
+.btn-primary:hover { background: #6ee89a; }
+.btn-ghost {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { background: var(--surface3); color: var(--text); border-color: var(--border2); }
+.btn-danger {
+  background: transparent; color: var(--red);
+  border: 1px solid rgba(248,113,113,0.25);
+}
+.btn-danger:hover { background: rgba(248,113,113,0.08); }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-icon { padding: 7px; }
+
+/* MAIN LAYOUT */
+main { position: relative; z-index: 1; }
+
+/* ══════════════════════════════
+   SCREEN: HOME
+══════════════════════════════ */
+#screen-home {
+  max-width: 780px; margin: 0 auto;
+  padding: 52px 24px 80px;
+}
+.home-headline {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.home-headline span { color: var(--green); }
+.home-sub {
+  color: var(--text-muted); font-size: 13px;
+  margin-bottom: 44px;
+}
+.home-columns {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.search-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+.search-card:hover { border-color: var(--border2); }
+.card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-label-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.dot-green { background: var(--green); }
+.dot-teal { background: var(--teal); }
+
+.select-wrapper {
+  position: relative;
+}
+.select-wrapper select,
+.form-input, .form-textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+}
+.select-wrapper select:focus,
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--green-dim);
+  box-shadow: 0 0 0 3px var(--green-glow);
+}
+.select-wrapper::after {
+  content: '▾';
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none; font-size: 11px;
+}
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { margin-bottom: 12px; }
+.form-label {
+  display: block;
+  font-size: 11px; color: var(--text-muted);
+  margin-bottom: 5px; font-weight: 500;
+}
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.go-btn {
+  width: 100%; margin-top: 12px;
+  padding: 10px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.go-btn:hover { background: var(--green-muted); border-color: var(--green-dim); color: var(--green); }
+.go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.home-actions {
+  margin-top: 14px;
+  display: flex; gap: 8px;
+}
+
+/* Recent items */
+.recent-section { margin-top: 36px; }
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text-dim); text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.recent-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.recent-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.recent-chip:hover { border-color: var(--green-dim); background: var(--green-glow); }
+.recent-chip-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.type-client { color: var(--green); }
+.type-retailer { color: var(--teal); }
+.recent-chip-name { font-weight: 600; font-size: 12px; }
+.recent-chip-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+/* LOADING */
+.loading-state {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text-muted); font-size: 12px; padding: 20px 0;
+}
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════
+   SCREEN: PROFILE
+══════════════════════════════ */
+#screen-profile { display: none; }
+.profile-layout {
+  display: grid; grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 52px);
+}
+
+/* SIDEBAR */
+.profile-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 18px;
+  position: sticky; top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.back-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none;
+  color: var(--text-muted); font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px; cursor: pointer; padding: 6px 8px;
+  border-radius: var(--radius); transition: all 0.15s;
+  margin-bottom: 12px;
+}
+.back-btn:hover { color: var(--text); background: var(--surface3); }
+.profile-identity {
+  padding: 14px 10px 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.profile-type-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 20px;
+  display: inline-block; margin-bottom: 8px;
+}
+.badge-client { background: var(--green-muted); color: var(--green); }
+.badge-retailer { background: var(--teal-muted); color: var(--teal); }
+.profile-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1.2;
+  margin-bottom: 4px;
+}
+.profile-meta { font-size: 11px; color: var(--text-muted); }
+
+.nav-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-dim); padding: 12px 10px 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: var(--radius);
+  cursor: pointer; color: var(--text-muted);
+  font-size: 12px; font-weight: 500;
+  transition: all 0.12s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--surface3); color: var(--text); }
+.nav-item.active { background: var(--green-muted); color: var(--green); }
+.nav-icon { font-size: 13px; width: 16px; text-align: center; }
+
+/* CONTENT AREA */
+.profile-content {
+  padding: 28px 32px;
+  overflow-y: auto;
+}
+.content-section { display: none; }
+.content-section.active { display: block; }
+
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* INFO GRID */
+.info-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 12px; margin-bottom: 20px;
+}
+.info-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+.info-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.info-card-value {
+  font-size: 13px; font-weight: 500;
+  word-break: break-word;
+}
+.info-card-value.large {
+  font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 700;
+}
+.info-card-value.green { color: var(--green); }
+.info-card-value.teal { color: var(--teal); }
+.info-card-value.empty { color: var(--text-dim); font-style: italic; font-weight: 400; }
+
+/* EDITABLE FIELD */
+.editable-field {
+  position: relative;
+  cursor: pointer;
+}
+.editable-field:hover .edit-hint { opacity: 1; }
+.edit-hint {
+  position: absolute; top: 8px; right: 8px;
+  opacity: 0; transition: opacity 0.15s;
+  font-size: 10px; color: var(--green);
+}
+
+/* NOTES */
+.notes-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.notes-area textarea {
+  width: 100%; background: none; border: none;
+  color: var(--text); font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px; resize: none; outline: none;
+  min-height: 100px; line-height: 1.6;
+}
+.notes-area textarea::placeholder { color: var(--text-dim); }
+
+/* CONTACTS */
+.contacts-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.contact-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.contact-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-muted), var(--teal-muted));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+  color: var(--green); flex-shrink: 0;
+}
+.contact-info { flex: 1; min-width: 0; }
+.contact-name { font-weight: 600; font-size: 13px; }
+.contact-role { font-size: 11px; color: var(--text-muted); }
+.contact-detail { font-size: 11px; color: var(--teal); margin-top: 1px; }
+.contact-actions { display: flex; gap: 4px; }
+
+/* DOCUMENTS / FILES */
+.file-drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+  margin-bottom: 16px;
+  background: var(--surface);
+}
+.file-drop-zone:hover, .file-drop-zone.drag-over {
+  border-color: var(--green-dim);
+  background: var(--green-glow);
+}
+.drop-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+.drop-text { font-size: 13px; color: var(--text-muted); }
+.drop-text span { color: var(--green); cursor: pointer; }
+.drop-subtext { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+#file-input-hidden { display: none; }
+
+.files-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.file-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.file-card:hover { border-color: var(--border2); background: var(--surface2); }
+.file-card-preview {
+  width: 100%; height: 100px; border-radius: var(--radius);
+  object-fit: cover; margin-bottom: 10px;
+  background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+}
+.file-card-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius); }
+.file-name { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+.file-actions {
+  display: flex; gap: 4px; margin-top: 8px;
+}
+.file-tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 3px; margin-bottom: 6px;
+}
+.tag-pdf { background: rgba(248,113,113,0.12); color: var(--red); }
+.tag-img { background: rgba(45,212,191,0.1); color: var(--teal); }
+.tag-doc { background: rgba(74,222,128,0.1); color: var(--green); }
+
+/* RETAILERS UNDER CLIENT */
+.retailers-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.retailer-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: all 0.15s;
+}
+.retailer-row:hover { border-color: var(--teal-dim, #0f766e); background: rgba(45,212,191,0.03); }
+.retailer-row-left { display: flex; align-items: center; gap: 12px; }
+.retailer-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--teal); flex-shrink: 0;
+}
+.retailer-row-name { font-weight: 600; font-size: 13px; }
+.retailer-row-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.retailer-row-stats {
+  display: flex; gap: 12px; align-items: center;
+}
+.stat-pill {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-muted);
+  background: var(--surface3); border: 1px solid var(--border);
+  padding: 3px 8px; border-radius: 20px;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%; max-width: 460px;
+  max-height: 85vh; overflow-y: auto;
+  transform: translateY(10px);
+  transition: transform 0.2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 700;
+  letter-spacing: -0.02em; margin-bottom: 18px;
+}
+.modal-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* TOAST */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px;
+  z-index: 1000; display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  font-size: 12px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  animation: toastIn 0.25s ease;
+  min-width: 220px;
+}
+.toast-success { border-left: 3px solid var(--green); }
+.toast-error { border-left: 3px solid var(--red); }
+@keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+/* UPLOAD PROGRESS */
+.upload-progress {
+  background: var(--surface3);
+  border-radius: var(--radius);
+  height: 4px; overflow: hidden; margin-top: 8px;
+}
+.upload-bar {
+  height: 100%; background: var(--green);
+  border-radius: var(--radius);
+  transition: width 0.3s;
+}
+
+/* DIVIDER */
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+.empty-title { font-weight: 600; margin-bottom: 4px; }
+.empty-sub { font-size: 12px; color: var(--text-dim); }
+
+/* ROUTING GUIDE */
+.routing-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px; margin-bottom: 10px;
+}
+.routing-block-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 10px;
+  display: flex; justify-content: space-between;
+}
+.tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 11px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 5px;
+}
+.tag-remove { cursor: pointer; opacity: 0.5; }
+.tag-remove:hover { opacity: 1; color: var(--red); }
+.tag-input {
+  background: none; border: none; color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px; outline: none; padding: 3px 0;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-mark">
+    <div class="logo-icon">AX</div>
+    <div>
+      <div class="logo-text">Brand Hub</div>
+      <div class="logo-sub">ATOMIX SPECIAL PROJECTS</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="badge-count" id="hdr-counts">— clients · — retailers</span>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('modal-add-client')">+ Client</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-retailer')">+ Retailer</button>
+  </div>
+</header>
+
+<main>
+<!-- ══════ SCREEN: HOME ══════ -->
+<div id="screen-home">
+  <div class="home-headline">Client &amp; Brand<br><span>Intelligence Hub</span></div>
+  <div class="home-sub">Select a client or retailer to view their full profile, documents, and contacts.</div>
+
+  <div class="home-columns">
+    <!-- CLIENT CARD -->
+    <div class="search-card">
+      <div class="card-label"><div class="card-label-dot dot-green"></div>Client / Brand</div>
+      <div class="form-row">
+        <div class="select-wrapper">
+          <select id="select-client" onchange="onClientSelect()">
+            <option value="">Select a client…</option>
+          </select>
+        </div>
+      </div>
+      <button class="go-btn" id="btn-go-client" disabled onclick="goToClient()">
+        View Client Profile →
+      </button>
+    </div>
+
+    <!-- RETAILER CARD -->
+    <div class="search-card">
+      <div class="card-label"><div class="card-label-dot dot-teal"></div>Retailer</div>
+      <div class="form-row">
+        <div class="select-wrapper">
+          <select id="select-retailer" onchange="onRetailerSelect()">
+            <option value="">Select a retailer…</option>
+          </select>
+        </div>
+      </div>
+      <button class="go-btn" id="btn-go-retailer" disabled onclick="goToRetailer()">
+        View Retailer Profile →
+      </button>
+    </div>
+  </div>
+
+  <div class="recent-section">
+    <div class="section-label">Recently Viewed</div>
+    <div class="recent-grid" id="recent-grid">
+      <div class="loading-state"><div class="spinner"></div> Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: PROFILE ══════ -->
+<div id="screen-profile">
+  <div class="profile-layout">
+    <!-- SIDEBAR -->
+    <aside class="profile-sidebar" id="profile-sidebar">
+      <button class="back-btn" onclick="goHome()">← Back</button>
+      <div class="profile-identity">
+        <div class="profile-type-badge" id="prof-type-badge">Client</div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-meta" id="prof-meta">—</div>
+      </div>
+      <div class="nav-section-label">Sections</div>
+      <!-- nav populated by JS -->
+      <div id="profile-nav"></div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="profile-content" id="profile-content-area">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- MODAL: ADD CLIENT -->
+<div class="modal-overlay" id="modal-add-client">
+  <div class="modal">
+    <div class="modal-title">Add New Client</div>
+    <div class="form-row"><label class="form-label">Client / Brand Name *</label><input class="form-input" id="new-client-name" placeholder="e.g. Acme Foods"></div>
+    <div class="form-row"><label class="form-label">Industry</label><input class="form-input" id="new-client-industry" placeholder="e.g. CPG, Supplement, Apparel"></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Primary Contact Name</label><input class="form-input" id="new-client-contact-name" placeholder="Jane Smith"></div>
+      <div class="form-row"><label class="form-label">Contact Email</label><input class="form-input" id="new-client-contact-email" placeholder="jane@brand.com"></div>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea class="form-textarea" id="new-client-notes" placeholder="Any initial notes…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-client')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewClient()">Save Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD RETAILER -->
+<div class="modal-overlay" id="modal-add-retailer">
+  <div class="modal">
+    <div class="modal-title">Add New Retailer</div>
+    <div class="form-row"><label class="form-label">Retailer Name *</label><input class="form-input" id="new-retailer-name" placeholder="e.g. Target, Walmart, Costco"></div>
+    <div class="form-row"><label class="form-label">Retailer Type</label>
+      <div class="select-wrapper"><select class="form-input" id="new-retailer-type">
+        <option value="">Select type…</option>
+        <option>Mass Market</option><option>Club</option><option>Specialty</option>
+        <option>Grocery</option><option>Drug</option><option>E-commerce</option><option>Other</option>
+      </select></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Buyer Contact Name</label><input class="form-input" id="new-retailer-buyer" placeholder="John Doe"></div>
+      <div class="form-row"><label class="form-label">Buyer Email</label><input class="form-input" id="new-retailer-email" placeholder="buyer@retailer.com"></div>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea class="form-textarea" id="new-retailer-notes" placeholder="Any initial notes…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-retailer')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewRetailer()">Save Retailer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD CONTACT -->
+<div class="modal-overlay" id="modal-add-contact">
+  <div class="modal">
+    <div class="modal-title">Add Contact</div>
+    <div class="form-row"><label class="form-label">Name *</label><input class="form-input" id="new-contact-name" placeholder="Full name"></div>
+    <div class="form-row"><label class="form-label">Role / Title</label><input class="form-input" id="new-contact-role" placeholder="e.g. Account Manager"></div>
+    <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="new-contact-email" placeholder="email@example.com"></div>
+    <div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="new-contact-phone" placeholder="+1 (555) 000-0000"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-contact')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContact()">Save Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LINK RETAILER TO CLIENT -->
+<div class="modal-overlay" id="modal-link-retailer">
+  <div class="modal">
+    <div class="modal-title">Link Retailer to Client</div>
+    <div class="form-row">
+      <label class="form-label">Select Retailer</label>
+      <div class="select-wrapper"><select class="form-input" id="link-retailer-select"><option value="">Choose…</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-link-retailer')">Cancel</button>
+      <button class="btn btn-primary" onclick="linkRetailerToClient()">Link Retailer</button>
+    </div>
+  </div>
+</div>
+
+<!-- hidden file input -->
+<input type="file" id="file-input-hidden" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.csv" onchange="handleFileUpload(event)">
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",
+  authDomain: "atomix-tools.firebaseapp.com",
+  projectId: "atomix-tools",
+  storageBucket: "atomix-tools.firebasestorage.app",
+  messagingSenderId: "211594945190",
+  appId: "1:211594945190:web:bf70681d9335816984ca67"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// ── STATE ──
+let clients = {};
+let retailers = {};
+let currentProfile = null; // { type: 'client'|'retailer', id }
+let recentViewed = JSON.parse(localStorage.getItem('ax-brand-recent') || '[]');
+let currentFileContext = null; // { profileType, profileId, folderId? }
+let currentContactContext = null;
+
+// ── INIT ──
+async function init() {
+  onSnapshot(collection(db, 'brandClients'), snap => {
+    clients = {};
+    snap.forEach(d => clients[d.id] = { id: d.id, ...d.data() });
+    populateDropdowns();
+    renderRecentGrid();
+    updateHeaderCounts();
+  });
+  onSnapshot(collection(db, 'brandRetailers'), snap => {
+    retailers = {};
+    snap.forEach(d => retailers[d.id] = { id: d.id, ...d.data() });
+    populateDropdowns();
+    renderRecentGrid();
+    updateHeaderCounts();
+  });
+}
+
+function updateHeaderCounts() {
+  document.getElementById('hdr-counts').textContent =
+    `${Object.keys(clients).length} clients · ${Object.keys(retailers).length} retailers`;
+}
+
+function populateDropdowns() {
+  const cs = document.getElementById('select-client');
+  const rs = document.getElementById('select-retailer');
+  const cv = cs.value; const rv = rs.value;
+  cs.innerHTML = '<option value="">Select a client…</option>' +
+    Object.values(clients).sort((a,b)=>a.name.localeCompare(b.name))
+      .map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  rs.innerHTML = '<option value="">Select a retailer…</option>' +
+    Object.values(retailers).sort((a,b)=>a.name.localeCompare(b.name))
+      .map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  cs.value = cv; rs.value = rv;
+}
+
+// ── RECENT ──
+function addRecent(type, id) {
+  recentViewed = recentViewed.filter(r => !(r.type===type && r.id===id));
+  recentViewed.unshift({ type, id });
+  recentViewed = recentViewed.slice(0, 6);
+  localStorage.setItem('ax-brand-recent', JSON.stringify(recentViewed));
+  renderRecentGrid();
+}
+
+function renderRecentGrid() {
+  const el = document.getElementById('recent-grid');
+  const valid = recentViewed.filter(r => r.type==='client' ? clients[r.id] : retailers[r.id]);
+  if (!valid.length) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:16px 0;">No recent views yet.</div>';
+    return;
+  }
+  el.innerHTML = valid.map(r => {
+    const obj = r.type==='client' ? clients[r.id] : retailers[r.id];
+    if (!obj) return '';
+    return `<div class="recent-chip" onclick="openProfile('${r.type}','${r.id}')">
+      <div class="recent-chip-type ${r.type==='client'?'type-client':'type-retailer'}">${r.type}</div>
+      <div class="recent-chip-name">${obj.name}</div>
+      <div class="recent-chip-sub">${obj.industry||obj.type||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── NAVIGATION ──
+window.onClientSelect = () => {
+  document.getElementById('btn-go-client').disabled = !document.getElementById('select-client').value;
+};
+window.onRetailerSelect = () => {
+  document.getElementById('btn-go-retailer').disabled = !document.getElementById('select-retailer').value;
+};
+window.goToClient = () => {
+  const id = document.getElementById('select-client').value;
+  if (id) openProfile('client', id);
+};
+window.goToRetailer = () => {
+  const id = document.getElementById('select-retailer').value;
+  if (id) openProfile('retailer', id);
+};
+window.goHome = () => {
+  document.getElementById('screen-home').style.display = '';
+  document.getElementById('screen-profile').style.display = 'none';
+  currentProfile = null;
+};
+
+window.openProfile = function(type, id) {
+  currentProfile = { type, id };
+  addRecent(type, id);
+  if (type === 'client') renderClientProfile(id);
+  else renderRetailerProfile(id);
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-profile').style.display = '';
+  window.scrollTo(0,0);
+};
+
+// ── CLIENT PROFILE ──
+function renderClientProfile(id) {
+  const c = clients[id];
+  if (!c) return;
+  document.getElementById('prof-type-badge').textContent = 'Client';
+  document.getElementById('prof-type-badge').className = 'profile-type-badge badge-client';
+  document.getElementById('prof-name').textContent = c.name;
+  document.getElementById('prof-meta').textContent = c.industry || 'No industry set';
+
+  const navItems = [
+    { id:'overview', icon:'📋', label:'Overview' },
+    { id:'contacts', icon:'👥', label:'Contacts' },
+    { id:'documents', icon:'📁', label:'Documents & SOPs' },
+    { id:'retailers', icon:'🏪', label:'Linked Retailers' },
+    { id:'notes', icon:'📝', label:'Notes' },
+  ];
+  renderNav(navItems, 'overview');
+
+  const content = document.getElementById('profile-content-area');
+  content.innerHTML = `
+    <!-- OVERVIEW -->
+    <div id="sec-overview" class="content-section active">
+      <div class="section-header">
+        <div class="section-title">Overview</div>
+        <button class="btn btn-ghost btn-sm" onclick="openEditClient('${id}')">✏️ Edit</button>
+      </div>
+      <div class="info-grid info-grid-3">
+        <div class="info-card">
+          <div class="info-card-label">Client Name</div>
+          <div class="info-card-value">${c.name}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Industry</div>
+          <div class="info-card-value ${!c.industry?'empty':''}">${c.industry||'Not set'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Linked Retailers</div>
+          <div class="info-card-value large green">${(c.linkedRetailers||[]).length}</div>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-label">Primary Contact</div>
+          <div class="info-card-value ${!c.primaryContact?'empty':''}">${c.primaryContact||'Not set'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Contact Email</div>
+          <div class="info-card-value ${!c.contactEmail?'empty':''}">${c.contactEmail||'Not set'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div id="sec-contacts" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Contacts</div>
+        <button class="btn btn-primary btn-sm" onclick="openAddContact('client','${id}')">+ Add Contact</button>
+      </div>
+      <div id="contacts-list-client" class="contacts-list">
+        ${renderContactsList(c.contacts||[],'client',id)}
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div id="sec-documents" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Documents & SOPs</div>
+      </div>
+      <div class="file-drop-zone" id="drop-zone-client"
+        ondragover="handleDragOver(event,'client','${id}')"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event,'client','${id}')"
+        onclick="triggerFileInput('client','${id}')">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">Drop files here or <span>browse</span></div>
+        <div class="drop-subtext">PDFs, images, Word docs, Excel — max 50MB each</div>
+      </div>
+      <div class="files-grid" id="files-grid-client-${id}">
+        <div class="loading-state"><div class="spinner"></div> Loading files…</div>
+      </div>
+    </div>
+
+    <!-- RETAILERS -->
+    <div id="sec-retailers" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Linked Retailers</div>
+        <button class="btn btn-primary btn-sm" onclick="openLinkRetailer('${id}')">+ Link Retailer</button>
+      </div>
+      <div id="linked-retailers-list" class="retailers-list">
+        ${renderLinkedRetailers(c.linkedRetailers||[], id)}
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="sec-notes" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Notes</div>
+        <button class="btn btn-ghost btn-sm" id="save-notes-btn" onclick="saveNotes('client','${id}')">Save Notes</button>
+      </div>
+      <div class="notes-area">
+        <textarea id="notes-textarea" placeholder="Add notes about this client, special requirements, history…">${c.notes||''}</textarea>
+      </div>
+    </div>
+  `;
+  loadFiles('client', id);
+}
+
+// ── RETAILER PROFILE ──
+function renderRetailerProfile(id) {
+  const r = retailers[id];
+  if (!r) return;
+  document.getElementById('prof-type-badge').textContent = 'Retailer';
+  document.getElementById('prof-type-badge').className = 'profile-type-badge badge-retailer';
+  document.getElementById('prof-name').textContent = r.name;
+  document.getElementById('prof-meta').textContent = r.type || 'Retailer';
+
+  const navItems = [
+    { id:'overview', icon:'📋', label:'Overview' },
+    { id:'contacts', icon:'👥', label:'Contacts' },
+    { id:'documents', icon:'📁', label:'Documents' },
+    { id:'routing', icon:'🗺️', label:'Routing & Compliance' },
+    { id:'notes', icon:'📝', label:'Notes' },
+  ];
+  renderNav(navItems, 'overview');
+
+  const content = document.getElementById('profile-content-area');
+  content.innerHTML = `
+    <!-- OVERVIEW -->
+    <div id="sec-overview" class="content-section active">
+      <div class="section-header">
+        <div class="section-title">Overview</div>
+        <button class="btn btn-ghost btn-sm" onclick="openEditRetailer('${id}')">✏️ Edit</button>
+      </div>
+      <div class="info-grid info-grid-3">
+        <div class="info-card">
+          <div class="info-card-label">Retailer Name</div>
+          <div class="info-card-value">${r.name}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Type</div>
+          <div class="info-card-value ${!r.type?'empty':''}">${r.type||'Not set'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Standard Lead Time</div>
+          <div class="info-card-value teal ${!r.leadTime?'empty':''}">${r.leadTime||'Not set'}</div>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-label">Buyer Contact</div>
+          <div class="info-card-value ${!r.buyerContact?'empty':''}">${r.buyerContact||'Not set'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">Buyer Email</div>
+          <div class="info-card-value ${!r.buyerEmail?'empty':''}">${r.buyerEmail||'Not set'}</div>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-label">Compliance Charge-back Risk</div>
+          <div class="info-card-value ${!r.chargebackRisk?'empty':''}">${r.chargebackRisk||'Not set'}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-label">EDI Required</div>
+          <div class="info-card-value">${r.ediRequired ? '✅ Yes' : '—'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div id="sec-contacts" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Contacts</div>
+        <button class="btn btn-primary btn-sm" onclick="openAddContact('retailer','${id}')">+ Add Contact</button>
+      </div>
+      <div id="contacts-list-retailer" class="contacts-list">
+        ${renderContactsList(r.contacts||[],'retailer',id)}
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div id="sec-documents" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Documents, Routing Guides & Photos</div>
+      </div>
+      <div class="file-drop-zone" id="drop-zone-retailer"
+        ondragover="handleDragOver(event,'retailer','${id}')"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event,'retailer','${id}')"
+        onclick="triggerFileInput('retailer','${id}')">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">Drop files here or <span>browse</span></div>
+        <div class="drop-subtext">PDFs, images, routing guides, compliance docs — max 50MB each</div>
+      </div>
+      <div class="files-grid" id="files-grid-retailer-${id}">
+        <div class="loading-state"><div class="spinner"></div> Loading files…</div>
+      </div>
+    </div>
+
+    <!-- ROUTING -->
+    <div id="sec-routing" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Routing & Compliance</div>
+        <button class="btn btn-ghost btn-sm" onclick="saveRoutingData('${id}')">Save</button>
+      </div>
+      <div class="routing-block">
+        <div class="routing-block-title"><span>Labeling Requirements</span></div>
+        <textarea class="form-textarea" id="routing-labeling" placeholder="Describe label placement, UPC sticker requirements, etc.">${r.labelingReqs||''}</textarea>
+      </div>
+      <div class="routing-block">
+        <div class="routing-block-title"><span>Packing Rules</span></div>
+        <textarea class="form-textarea" id="routing-packing" placeholder="Case pack requirements, inner/master carton specs, etc.">${r.packingRules||''}</textarea>
+      </div>
+      <div class="routing-block">
+        <div class="routing-block-title"><span>Shipping / Routing Rules</span></div>
+        <textarea class="form-textarea" id="routing-shipping" placeholder="Carrier requirements, routing guide notes, FOB terms…">${r.shippingRules||''}</textarea>
+      </div>
+      <div class="routing-block">
+        <div class="routing-block-title"><span>Charge-back Risks / Notes</span></div>
+        <textarea class="form-textarea" id="routing-chargebacks" placeholder="Known charge-back triggers, compliance fines…">${r.chargebackNotes||''}</textarea>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="sec-notes" class="content-section">
+      <div class="section-header">
+        <div class="section-title">Notes</div>
+        <button class="btn btn-ghost btn-sm" onclick="saveNotes('retailer','${id}')">Save Notes</button>
+      </div>
+      <div class="notes-area">
+        <textarea id="notes-textarea" placeholder="Add notes about this retailer, special history, preferences…">${r.notes||''}</textarea>
+      </div>
+    </div>
+  `;
+  loadFiles('retailer', id);
+}
+
+function renderNav(items, activeId) {
+  const nav = document.getElementById('profile-nav');
+  nav.innerHTML = items.map(item => `
+    <button class="nav-item ${item.id===activeId?'active':''}" id="nav-${item.id}" onclick="switchSection('${item.id}')">
+      <span class="nav-icon">${item.icon}</span>${item.label}
+    </button>
+  `).join('');
+}
+
+window.switchSection = function(id) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById(`sec-${id}`);
+  const nav = document.getElementById(`nav-${id}`);
+  if (sec) sec.classList.add('active');
+  if (nav) nav.classList.add('active');
+};
+
+// ── CONTACTS ──
+function renderContactsList(contacts, profileType, profileId) {
+  if (!contacts.length) return `<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">No contacts yet</div><div class="empty-sub">Add your first contact above.</div></div>`;
+  return contacts.map((c, i) => `
+    <div class="contact-card">
+      <div class="contact-avatar">${(c.name||'?').charAt(0).toUpperCase()}</div>
+      <div class="contact-info">
+        <div class="contact-name">${c.name}</div>
+        <div class="contact-role">${c.role||'—'}</div>
+        ${c.email ? `<div class="contact-detail">✉️ ${c.email}</div>` : ''}
+        ${c.phone ? `<div class="contact-detail">📞 ${c.phone}</div>` : ''}
+      </div>
+      <div class="contact-actions">
+        <button class="btn btn-danger btn-sm btn-icon" onclick="removeContact('${profileType}','${profileId}',${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.openAddContact = function(profileType, profileId) {
+  currentContactContext = { profileType, profileId };
+  ['name','role','email','phone'].forEach(f => document.getElementById(`new-contact-${f}`).value = '');
+  openModal('modal-add-contact');
+};
+
+window.saveContact = async function() {
+  const { profileType, profileId } = currentContactContext;
+  const contact = {
+    name: document.getElementById('new-contact-name').value.trim(),
+    role: document.getElementById('new-contact-role').value.trim(),
+    email: document.getElementById('new-contact-email').value.trim(),
+    phone: document.getElementById('new-contact-phone').value.trim(),
+  };
+  if (!contact.name) return toast('Name is required', 'error');
+  const col = profileType === 'client' ? 'brandClients' : 'brandRetailers';
+  const obj = profileType === 'client' ? clients[profileId] : retailers[profileId];
+  const contacts = [...(obj.contacts||[]), contact];
+  await updateDoc(doc(db, col, profileId), { contacts });
+  closeModal('modal-add-contact');
+  toast('Contact added');
+  setTimeout(() => {
+    const listEl = document.getElementById(`contacts-list-${profileType}`);
+    if (listEl) listEl.innerHTML = renderContactsList(contacts, profileType, profileId);
+  }, 500);
+};
+
+window.removeContact = async function(profileType, profileId, idx) {
+  const col = profileType === 'client' ? 'brandClients' : 'brandRetailers';
+  const obj = profileType === 'client' ? clients[profileId] : retailers[profileId];
+  const contacts = (obj.contacts||[]).filter((_,i)=>i!==idx);
+  await updateDoc(doc(db, col, profileId), { contacts });
+  toast('Contact removed');
+  setTimeout(() => {
+    const listEl = document.getElementById(`contacts-list-${profileType}`);
+    if (listEl) listEl.innerHTML = renderContactsList(contacts, profileType, profileId);
+  }, 300);
+};
+
+// ── FILES ──
+async function loadFiles(profileType, profileId) {
+  const gridId = `files-grid-${profileType}-${profileId}`;
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  try {
+    const snap = await getDocs(collection(db, `brandFiles_${profileType}_${profileId}`));
+    const files = [];
+    snap.forEach(d => files.push({ id: d.id, ...d.data() }));
+    renderFilesGrid(files, profileType, profileId);
+  } catch(e) {
+    if (grid) grid.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">Could not load files.</div>';
+  }
+}
+
+function renderFilesGrid(files, profileType, profileId) {
+  const grid = document.getElementById(`files-grid-${profileType}-${profileId}`);
+  if (!grid) return;
+  if (!files.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📭</div><div class="empty-title">No files yet</div><div class="empty-sub">Upload documents, PDFs, or photos above.</div></div>`;
+    return;
+  }
+  grid.innerHTML = files.map(f => {
+    const ext = (f.name||'').split('.').pop().toLowerCase();
+    const isImg = ['jpg','jpeg','png','gif','webp'].includes(ext);
+    const isPdf = ext === 'pdf';
+    const tagClass = isPdf ? 'tag-pdf' : isImg ? 'tag-img' : 'tag-doc';
+    const tagLabel = isPdf ? 'PDF' : isImg ? 'IMG' : 'DOC';
+    const preview = isImg
+      ? `<div class="file-card-preview"><img src="${f.url}" loading="lazy"></div>`
+      : `<div class="file-card-preview" style="font-size:32px">${isPdf?'📄':'📎'}</div>`;
+    return `
+      <div class="file-card">
+        ${preview}
+        <div class="file-tag ${tagClass}">${tagLabel}</div>
+        <div class="file-name" title="${f.name}">${f.name}</div>
+        <div class="file-meta">${formatBytes(f.size||0)}</div>
+        <div class="file-actions">
+          <a href="${f.url}" target="_blank" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;text-decoration:none">Open</a>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteFile('${profileType}','${profileId}','${f.id}','${f.storagePath}')">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.triggerFileInput = function(profileType, profileId) {
+  currentFileContext = { profileType, profileId };
+  document.getElementById('file-input-hidden').click();
+};
+
+window.handleDragOver = function(event, profileType, profileId) {
+  event.preventDefault();
+  event.currentTarget.classList.add('drag-over');
+  currentFileContext = { profileType, profileId };
+};
+window.handleDragLeave = function(event) {
+  event.currentTarget.classList.remove('drag-over');
+};
+window.handleDrop = function(event, profileType, profileId) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag-over');
+  currentFileContext = { profileType, profileId };
+  uploadFiles(Array.from(event.dataTransfer.files));
+};
+window.handleFileUpload = function(event) {
+  uploadFiles(Array.from(event.target.files));
+  event.target.value = '';
+};
+
+async function uploadFiles(files) {
+  if (!currentFileContext) return;
+  const { profileType, profileId } = currentFileContext;
+  for (const file of files) {
+    if (file.size > 52428800) { toast(`${file.name} exceeds 50MB`, 'error'); continue; }
+    const toastId = toastProgress(`Uploading ${file.name}…`);
+    const storagePath = `brandFiles/${profileType}/${profileId}/${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const task = uploadBytesResumable(storageRef, file);
+    task.on('state_changed', null, err => {
+      removeToast(toastId);
+      toast(`Upload failed: ${err.message}`, 'error');
+    }, async () => {
+      const url = await getDownloadURL(task.snapshot.ref);
+      const fileDoc = {
+        name: file.name, url, storagePath,
+        size: file.size, type: file.type,
+        uploadedAt: serverTimestamp()
+      };
+      const docRef = doc(collection(db, `brandFiles_${profileType}_${profileId}`));
+      await setDoc(docRef, fileDoc);
+      removeToast(toastId);
+      toast(`${file.name} uploaded`);
+      loadFiles(profileType, profileId);
+    });
+  }
+}
+
+window.deleteFile = async function(profileType, profileId, fileId, storagePath) {
+  if (!confirm('Delete this file?')) return;
+  try {
+    await deleteDoc(doc(db, `brandFiles_${profileType}_${profileId}`, fileId));
+    try { await deleteObject(ref(storage, storagePath)); } catch(e) {}
+    toast('File deleted');
+    loadFiles(profileType, profileId);
+  } catch(e) { toast('Delete failed', 'error'); }
+};
+
+// ── LINKED RETAILERS (CLIENT) ──
+function renderLinkedRetailers(linkedIds, clientId) {
+  if (!linkedIds.length) return `<div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-title">No linked retailers</div><div class="empty-sub">Link a retailer to track client-specific retail info.</div></div>`;
+  return linkedIds.map(rid => {
+    const r = retailers[rid];
+    if (!r) return '';
+    return `
+      <div class="retailer-row" onclick="openProfile('retailer','${rid}')">
+        <div class="retailer-row-left">
+          <div class="retailer-dot"></div>
+          <div>
+            <div class="retailer-row-name">${r.name}</div>
+            <div class="retailer-row-meta">${r.type||'Retailer'}</div>
+          </div>
+        </div>
+        <div class="retailer-row-stats">
+          <span class="stat-pill">${r.leadTime||'—'}</span>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="event.stopPropagation();unlinkRetailer('${clientId}','${rid}')">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.openLinkRetailer = function(clientId) {
+  const sel = document.getElementById('link-retailer-select');
+  const linked = clients[clientId]?.linkedRetailers || [];
+  sel.innerHTML = '<option value="">Choose…</option>' +
+    Object.values(retailers)
+      .filter(r => !linked.includes(r.id))
+      .sort((a,b)=>a.name.localeCompare(b.name))
+      .map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  sel.dataset.clientId = clientId;
+  openModal('modal-link-retailer');
+};
+
+window.linkRetailerToClient = async function() {
+  const sel = document.getElementById('link-retailer-select');
+  const clientId = sel.dataset.clientId;
+  const retailerId = sel.value;
+  if (!retailerId) return toast('Select a retailer', 'error');
+  const linked = [...(clients[clientId]?.linkedRetailers||[]), retailerId];
+  await updateDoc(doc(db, 'brandClients', clientId), { linkedRetailers: linked });
+  closeModal('modal-link-retailer');
+  toast('Retailer linked');
+  setTimeout(() => {
+    const el = document.getElementById('linked-retailers-list');
+    if (el) el.innerHTML = renderLinkedRetailers(linked, clientId);
+  }, 400);
+};
+
+window.unlinkRetailer = async function(clientId, retailerId) {
+  const linked = (clients[clientId]?.linkedRetailers||[]).filter(id=>id!==retailerId);
+  await updateDoc(doc(db, 'brandClients', clientId), { linkedRetailers: linked });
+  toast('Retailer unlinked');
+  setTimeout(() => {
+    const el = document.getElementById('linked-retailers-list');
+    if (el) el.innerHTML = renderLinkedRetailers(linked, clientId);
+  }, 400);
+};
+
+// ── NOTES ──
+window.saveNotes = async function(profileType, profileId) {
+  const notes = document.getElementById('notes-textarea').value;
+  const col = profileType === 'client' ? 'brandClients' : 'brandRetailers';
+  await updateDoc(doc(db, col, profileId), { notes });
+  toast('Notes saved');
+};
+
+// ── ROUTING DATA ──
+window.saveRoutingData = async function(retailerId) {
+  const data = {
+    labelingReqs: document.getElementById('routing-labeling')?.value || '',
+    packingRules: document.getElementById('routing-packing')?.value || '',
+    shippingRules: document.getElementById('routing-shipping')?.value || '',
+    chargebackNotes: document.getElementById('routing-chargebacks')?.value || '',
+  };
+  await updateDoc(doc(db, 'brandRetailers', retailerId), data);
+  toast('Routing info saved');
+};
+
+// ── ADD CLIENT / RETAILER ──
+window.saveNewClient = async function() {
+  const name = document.getElementById('new-client-name').value.trim();
+  if (!name) return toast('Client name required', 'error');
+  const data = {
+    name,
+    industry: document.getElementById('new-client-industry').value.trim(),
+    primaryContact: document.getElementById('new-client-contact-name').value.trim(),
+    contactEmail: document.getElementById('new-client-contact-email').value.trim(),
+    notes: document.getElementById('new-client-notes').value.trim(),
+    linkedRetailers: [], contacts: [],
+    createdAt: serverTimestamp()
+  };
+  const ref2 = doc(collection(db, 'brandClients'));
+  await setDoc(ref2, data);
+  closeModal('modal-add-client');
+  toast(`${name} added`);
+};
+
+window.saveNewRetailer = async function() {
+  const name = document.getElementById('new-retailer-name').value.trim();
+  if (!name) return toast('Retailer name required', 'error');
+  const data = {
+    name,
+    type: document.getElementById('new-retailer-type').value,
+    buyerContact: document.getElementById('new-retailer-buyer').value.trim(),
+    buyerEmail: document.getElementById('new-retailer-email').value.trim(),
+    notes: document.getElementById('new-retailer-notes').value.trim(),
+    contacts: [],
+    createdAt: serverTimestamp()
+  };
+  const ref2 = doc(collection(db, 'brandRetailers'));
+  await setDoc(ref2, data);
+  closeModal('modal-add-retailer');
+  toast(`${name} added`);
+};
+
+// ── EDIT MODALS ──
+window.openEditClient = function(id) {
+  const c = clients[id];
+  document.getElementById('new-client-name').value = c.name||'';
+  document.getElementById('new-client-industry').value = c.industry||'';
+  document.getElementById('new-client-contact-name').value = c.primaryContact||'';
+  document.getElementById('new-client-contact-email').value = c.contactEmail||'';
+  document.getElementById('new-client-notes').value = c.notes||'';
+  const modal = document.getElementById('modal-add-client');
+  modal.querySelector('.modal-title').textContent = 'Edit Client';
+  modal.querySelector('.btn-primary').onclick = async () => {
+    await updateDoc(doc(db, 'brandClients', id), {
+      name: document.getElementById('new-client-name').value.trim(),
+      industry: document.getElementById('new-client-industry').value.trim(),
+      primaryContact: document.getElementById('new-client-contact-name').value.trim(),
+      contactEmail: document.getElementById('new-client-contact-email').value.trim(),
+    });
+    closeModal('modal-add-client');
+    toast('Client updated');
+    setTimeout(()=>renderClientProfile(id), 400);
+  };
+  openModal('modal-add-client');
+};
+
+window.openEditRetailer = function(id) {
+  const r = retailers[id];
+  document.getElementById('new-retailer-name').value = r.name||'';
+  document.getElementById('new-retailer-type').value = r.type||'';
+  document.getElementById('new-retailer-buyer').value = r.buyerContact||'';
+  document.getElementById('new-retailer-email').value = r.buyerEmail||'';
+  document.getElementById('new-retailer-notes').value = r.notes||'';
+  const modal = document.getElementById('modal-add-retailer');
+  modal.querySelector('.modal-title').textContent = 'Edit Retailer';
+  modal.querySelector('.btn-primary').onclick = async () => {
+    await updateDoc(doc(db, 'brandRetailers', id), {
+      name: document.getElementById('new-retailer-name').value.trim(),
+      type: document.getElementById('new-retailer-type').value,
+      buyerContact: document.getElementById('new-retailer-buyer').value.trim(),
+      buyerEmail: document.getElementById('new-retailer-email').value.trim(),
+    });
+    closeModal('modal-add-retailer');
+    toast('Retailer updated');
+    setTimeout(()=>renderRetailerProfile(id), 400);
+  };
+  openModal('modal-add-retailer');
+};
+
+// ── MODAL HELPERS ──
+window.openModal = function(id) {
+  document.getElementById(id).classList.add('open');
+};
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('open');
+};
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── TOAST ──
+function toast(msg, type='success') {
+  const id = 'toast-' + Date.now();
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.id = id;
+  el.innerHTML = `<span>${type==='success'?'✓':'✕'}</span> ${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+  return id;
+}
+function toastProgress(msg) {
+  const id = 'toast-' + Date.now();
+  const el = document.createElement('div');
+  el.className = 'toast toast-success';
+  el.id = id;
+  el.innerHTML = `<div class="spinner" style="width:12px;height:12px;border-width:2px;margin-right:0"></div> ${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  return id;
+}
+function removeToast(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ── UTILS ──
+function formatBytes(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+init();
+</script>
+</body>
+</html>
