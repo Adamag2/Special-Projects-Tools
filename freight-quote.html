@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Freight Quote — Atomix</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080c10;color:#ddeeff;font-family:'Outfit',sans-serif;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 36px;height:56px;background:rgba(8,12,16,0.95);border-bottom:1px solid #1a2535;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.nav-left{display:flex;align-items:center;gap:14px}
+.nav-back{font-size:12px;color:#6a8aaa;text-decoration:none;font-weight:600;transition:color .15s;display:flex;align-items:center;gap:5px}
+.nav-back:hover{color:#ddeeff}
+.nav-div{width:1px;height:20px;background:#1a2535}
+.nav-logo{font-size:15px;font-weight:800;color:#ddeeff;letter-spacing:-.3px}
+.nav-logo em{color:#3EBD84;font-style:normal}
+.nav-right{display:flex;align-items:center;gap:10px}
+.mode-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.mode-badge.locked{background:#111820;color:#2e4560}
+.mode-badge.unlocked{background:#0f3324;color:#3EBD84}
+.mode-btn{padding:5px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #1f2e42;background:#111820;color:#6a8aaa;font-family:'Outfit',sans-serif;transition:all .15s}
+.mode-btn:hover{color:#ddeeff;border-color:#2e4560}
+.mode-btn.exit{border-color:rgba(248,113,113,0.35);color:#f87171}
+.mode-btn.exit:hover{background:rgba(248,113,113,0.07)}
+.toolbar{display:flex;align-items:center;gap:8px;padding:11px 36px;border-bottom:1px solid #1a2535;background:#0d1219;flex-wrap:wrap}
+.toolbar-left{display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap}
+.toolbar-right{display:flex;align-items:center;gap:8px}
+.tbtn{padding:7px 15px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;border:none;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tbtn-primary{background:#3EBD84;color:#080c10}
+.tbtn-primary:hover{background:#4dd492}
+.tbtn-ghost{background:transparent;color:#6a8aaa;border:1px solid #1f2e42}
+.tbtn-ghost:hover{background:#111820;color:#ddeeff}
+.tbtn-green{background:rgba(62,189,132,0.1);color:#3EBD84;border:1px solid rgba(62,189,132,0.25)}
+.tbtn-green:hover{background:rgba(62,189,132,0.18)}
+.tbtn-amber{background:rgba(245,158,11,0.08);color:#f59e0b;border:1px solid rgba(245,158,11,0.2)}
+.tbtn-amber:hover{background:rgba(245,158,11,0.14)}
+.tbtn-disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+.saving-ind{font-size:11px;color:#3EBD84;display:none;align-items:center;gap:6px}
+.saving-ind.show{display:flex}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:10px;height:10px;border:2px solid rgba(62,189,132,0.3);border-top-color:#3EBD84;border-radius:50%;animation:spin .6s linear infinite}
+.doc-wrap{padding:28px 36px 80px;max-width:960px;margin:0 auto}
+.doc{background:#fff;color:#0f1a2a;font-family:'Outfit',sans-serif;border-radius:4px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6),0 4px 20px rgba(0,0,0,.4)}
+.doc-header{background:linear-gradient(135deg,#0a1e14 0%,#061420 100%);padding:32px 40px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+.doc-brand{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+.doc-brand-icon{width:34px;height:34px;background:linear-gradient(135deg,#3EBD84,#2dd4bf);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#061420}
+.doc-brand-name{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.doc-brand-name em{color:#3EBD84;font-style:normal}
+.doc-co-info{font-size:10.5px;color:rgba(255,255,255,0.38);line-height:1.9}
+.doc-hdr-right{text-align:right;flex-shrink:0}
+.doc-type-lbl{font-size:10px;font-weight:700;color:#3EBD84;text-transform:uppercase;letter-spacing:.14em;margin-bottom:5px}
+.doc-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;margin-bottom:14px}
+.doc-meta-grid{display:flex;flex-direction:column;gap:5px}
+.doc-meta-row{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.doc-meta-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em}
+.doc-meta-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:5px;padding:3px 9px;font-size:12px;font-weight:600;color:#fff;font-family:'Outfit',sans-serif;outline:none;text-align:right;min-width:140px;transition:border-color .15s}
+.doc-meta-input:focus{border-color:rgba(62,189,132,0.5)}
+.doc-meta-input::placeholder{color:rgba(255,255,255,0.2)}
+.doc-band{background:#f4f7fa;border-bottom:2px solid #e2e8f0;padding:18px 40px;display:grid;grid-template-columns:repeat(3,1fr)}
+.band-cell{padding:0 16px;border-right:1px solid #e2e8f0}
+.band-cell:first-child{padding-left:0}
+.band-cell:last-child{border-right:none;padding-right:0}
+.band-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.band-input{border:none;border-bottom:1.5px solid #cbd5e1;outline:none;font-size:13px;font-weight:600;color:#0f1a2a;font-family:'Outfit',sans-serif;background:transparent;width:100%;padding:1px 0;transition:border-color .15s}
+.band-input:focus{border-color:#3EBD84}
+.band-input::placeholder{color:#cbd5e1}
+.doc-parties{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #e2e8f0}
+.party-block{padding:20px 40px}
+.party-block:first-child{border-right:1px solid #e2e8f0}
+.party-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.locked-tag{font-size:8px;font-weight:700;background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:1px 6px;border-radius:10px;text-transform:uppercase;letter-spacing:.06em}
+.client-sel-wrap{position:relative;margin-bottom:5px}
+.client-sel{border:none;border-bottom:1.5px solid #e2e8f0;outline:none;font-size:13.5px;font-weight:700;color:#0f1a2a;font-family:'Outfit',sans-serif;background:transparent;width:100%;padding:3px 0;cursor:pointer;appearance:none;transition:border-color .15s}
+.client-sel:focus{border-color:#3EBD84}
+.client-sel-wrap::after{content:'▾';position:absolute;right:2px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;font-size:11px}
+.party-input{border:none;border-bottom:1.5px dashed #e2e8f0;outline:none;font-size:12.5px;font-weight:500;color:#0f1a2a;font-family:'Outfit',sans-serif;background:transparent;width:100%;padding:3px 0;margin-bottom:3px;transition:border-color .15s}
+.party-input:focus{border-color:#3EBD84;border-style:solid}
+.party-input::placeholder{color:#cbd5e1}
+.rep-val{font-size:12.5px;color:#0f1a2a;line-height:2}
+.rep-val strong{display:block;font-size:13.5px;font-weight:700;line-height:1.4}
+.doc-notes{padding:14px 40px;border-bottom:2px solid #e2e8f0;background:#fafbfd}
+.notes-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.notes-input{border:none;outline:none;font-size:12px;color:#334155;font-family:'Outfit',sans-serif;background:transparent;width:100%;resize:none;line-height:1.65;min-height:32px}
+.notes-input::placeholder{color:#cbd5e1}
+.doc-body{padding:26px 40px 32px}
+.carriers-hdr{margin-bottom:14px}
+.carriers-title{font-size:12px;font-weight:800;color:#0f1a2a;text-transform:uppercase;letter-spacing:.07em}
+.carriers-sub{font-size:10.5px;color:#94a3b8;margin-top:2px}
+.ctable{width:100%;border-collapse:collapse;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.ctable th{background:#0a1e14;color:#3EBD84;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:10px 14px;text-align:left;border-right:1px solid #1a3a2a}
+.ctable th:last-child{border-right:none;text-align:center;color:rgba(62,189,132,0.4)}
+.ctable td{padding:11px 14px;border-bottom:1px solid #f1f5f9;border-right:1px solid #f1f5f9;vertical-align:middle}
+.ctable td:last-child{border-right:none;text-align:center}
+.ctable tr:last-child td{border-bottom:none}
+.ctable tr:nth-child(even) td{background:#fafbfd}
+.ctable tr.recommended td{background:linear-gradient(90deg,rgba(62,189,132,0.06),transparent)!important}
+.ctable tr.recommended td:first-child{border-left:3px solid #3EBD84}
+.csel-wrap{position:relative;width:100%}
+.csel{border:none;outline:none;font-size:13px;font-weight:600;color:#0f1a2a;font-family:'Outfit',sans-serif;background:transparent;width:100%;padding:0;cursor:pointer;appearance:none}
+.csel-wrap::after{content:'▾';position:absolute;right:0;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;font-size:10px}
+.ct-input{border:none;outline:none;font-size:13px;font-weight:500;color:#0f1a2a;font-family:'Outfit',sans-serif;background:transparent;width:100%;padding:0}
+.ct-input::placeholder{color:#cbd5e1}
+.ct-price{border:none;outline:none;font-size:14px;font-weight:700;color:#0f1a2a;font-family:'Outfit',sans-serif;background:transparent;width:100%;padding:0}
+.ct-price::placeholder{color:#cbd5e1}
+.rec-btn{background:none;border:none;cursor:pointer;padding:3px 7px;border-radius:5px;font-size:10px;color:#94a3b8;font-family:'Outfit',sans-serif;font-weight:600;transition:all .15s}
+.rec-btn:hover{background:#f1f5f9;color:#3EBD84}
+.del-btn{background:none;border:none;cursor:pointer;color:#cbd5e1;font-size:14px;padding:3px 6px;border-radius:5px;line-height:1;transition:all .15s}
+.del-btn:hover{background:#fee2e2;color:#ef4444}
+.act-cell{display:flex;align-items:center;justify-content:center;gap:3px}
+.doc-footer{padding:22px 40px;border-top:2px solid #e2e8f0;display:flex;align-items:flex-start;justify-content:space-between;gap:32px}
+.footer-note-wrap{flex:1}
+.footer-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px}
+.footer-note{border:none;outline:none;font-size:11.5px;color:#64748b;font-family:'Outfit',sans-serif;background:transparent;width:100%;resize:none;line-height:1.7}
+.footer-note::placeholder{color:#e2e8f0}
+.sig-block{flex-shrink:0;text-align:right;min-width:200px}
+.sig-line{border-bottom:1.5px solid #e2e8f0;margin-bottom:5px;margin-top:28px}
+.sig-lbl{font-size:10px;color:#94a3b8;font-weight:500}
+.doc-stamp{padding:12px 40px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
+.doc-stamp-text{font-size:9.5px;color:#94a3b8}
+.doc-stamp-logo{font-size:11px;font-weight:800;color:#94a3b8;letter-spacing:-.2px}
+.doc-stamp-logo em{color:#3EBD84;font-style:normal}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);z-index:300;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#0d1219;border:1px solid #1f2e42;border-radius:18px;padding:28px;width:300px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.8)}
+.modal h4{font-size:17px;font-weight:800;margin-bottom:4px;letter-spacing:-.3px}
+.modal p{font-size:12px;color:#6a8aaa;margin-bottom:18px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin:0 0 6px}
+.pin-dot{width:13px;height:13px;border-radius:50%;background:#1f2e42;transition:all .12s}
+.pin-dot.filled{background:#3EBD84;box-shadow:0 0 10px rgba(62,189,132,0.4)}
+.pin-err{font-size:12px;color:#f87171;min-height:17px;margin-bottom:6px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.kbtn{padding:14px;border:1px solid #1f2e42;border-radius:10px;background:#111820;cursor:pointer;font-size:17px;font-weight:700;color:#ddeeff;font-family:'Outfit',sans-serif;transition:all .1s}
+.kbtn:hover{background:#162030}
+.kbtn:active{transform:scale(.95)}
+.kbtn.sm{font-size:12px;color:#6a8aaa;font-weight:600}
+.big-modal{background:#0d1219;border:1px solid #1f2e42;border-radius:18px;padding:26px;width:460px;max-width:94vw;max-height:88vh;overflow-y:auto;text-align:left;box-shadow:0 32px 80px rgba(0,0,0,.8)}
+.big-modal h4{font-size:16px;font-weight:800;margin-bottom:4px;letter-spacing:-.3px}
+.big-modal .sub{font-size:12px;color:#6a8aaa;margin-bottom:16px}
+.mgr-lbl{font-size:10px;font-weight:700;color:#2e4560;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.mgr-list{border:1px solid #1f2e42;border-radius:8px;overflow:hidden;margin-bottom:14px;max-height:240px;overflow-y:auto}
+.mgr-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #111820;background:#080c10}
+.mgr-item:last-child{border-bottom:none}
+.mgr-item-name{font-size:13px;font-weight:600;color:#ddeeff;flex:1}
+.mgr-del-btn{background:none;border:none;color:#2e4560;cursor:pointer;font-size:14px;padding:3px 6px;border-radius:5px;transition:all .15s}
+.mgr-del-btn:hover{background:rgba(248,113,113,0.1);color:#f87171}
+.mgr-add-row{display:flex;gap:8px;margin-bottom:14px}
+.mgr-input{flex:1;background:#111820;border:1px solid #1f2e42;border-radius:8px;padding:9px 12px;font-size:13px;color:#ddeeff;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s}
+.mgr-input:focus{border-color:#3EBD84}
+.mgr-input::placeholder{color:#2e4560}
+.mgr-add-btn{padding:9px 16px;background:#3EBD84;border:none;border-radius:8px;color:#080c10;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap}
+.mgr-add-btn:hover{opacity:.88}
+.vfield{margin-bottom:12px}
+.vfield label{display:block;font-size:10px;font-weight:700;color:#2e4560;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.vfield input{width:100%;background:#111820;border:1px solid #1f2e42;border-radius:8px;padding:9px 12px;font-size:13px;color:#ddeeff;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s}
+.vfield input:focus{border-color:#3EBD84}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #111820}
+.mbtn-cancel{padding:8px 16px;border:1px solid #1f2e42;border-radius:8px;background:transparent;cursor:pointer;font-size:13px;color:#6a8aaa;font-family:'Outfit',sans-serif}
+.mbtn-cancel:hover{background:#111820}
+.mbtn-save{padding:8px 20px;border:none;border-radius:8px;background:#3EBD84;cursor:pointer;font-size:13px;color:#080c10;font-weight:700;font-family:'Outfit',sans-serif}
+.mbtn-save:hover{opacity:.88}
+.empty-mgr{text-align:center;padding:20px;color:#2e4560;font-size:12px}
+@media print{
+  body{background:#fff!important}
+  nav,.toolbar,.no-print,.del-btn,.rec-btn,.act-cell{display:none!important}
+  .doc-wrap{padding:0;max-width:100%}
+  .doc{box-shadow:none;border-radius:0}
+  .band-input,.party-input,.doc-meta-input,.notes-input,.footer-note,.ct-input,.ct-price,.client-sel,.csel{color:#0f1a2a!important}
+  .doc-meta-input{background:transparent!important;border:1px solid rgba(255,255,255,0.15)!important}
+  .ctable tr.recommended td{background:rgba(62,189,132,0.05)!important}
+  @page{margin:.5in}
+}
+</style>
+</head>
+<body>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,doc,getDoc,getDocs,setDoc,deleteDoc,onSnapshot,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const cfg={apiKey:"AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",authDomain:"atomix-tools.firebaseapp.com",projectId:"atomix-tools",storageBucket:"atomix-tools.firebasestorage.app",messagingSenderId:"211594945190",appId:"1:211594945190:web:bf70681d9335816984ca67"};
+const app=initializeApp(cfg);
+const db=getFirestore(app);
+window._db=db;
+window._col=collection;window._doc=doc;window._getDoc=getDoc;window._getDocs=getDocs;
+window._setDoc=setDoc;window._deleteDoc=deleteDoc;window._onSnapshot=onSnapshot;window._sts=serverTimestamp;
+window.dispatchEvent(new Event('fb-ready'));
+</script>
+
+<nav>
+  <div class="nav-left">
+    <a class="nav-back" href="index.html">← All Tools</a>
+    <div class="nav-div"></div>
+    <span class="nav-logo">atomix<em>.</em></span>
+  </div>
+  <div class="nav-right">
+    <span class="mode-badge locked" id="modeBadge">🔒 Locked</span>
+    <button class="mode-btn" id="modeBtn" onclick="handleModeBtn()">Manager Login</button>
+  </div>
+</nav>
+
+<div class="toolbar no-print">
+  <div class="toolbar-left">
+    <button class="tbtn tbtn-green" onclick="addCarrierRow()">+ Add Carrier</button>
+    <button id="btnMgrCarriers" class="tbtn tbtn-amber tbtn-disabled" onclick="openModal('modal-carriers')">⚙ Carriers</button>
+    <button id="btnMgrClients" class="tbtn tbtn-amber tbtn-disabled" onclick="openModal('modal-clients')">⚙ Clients</button>
+    <button id="btnMgrRep" class="tbtn tbtn-amber tbtn-disabled" onclick="openRep()">✏️ Prepared By</button>
+    <button class="tbtn tbtn-ghost" onclick="clearDoc()">🗑 New Quote</button>
+    <span class="saving-ind" id="savingInd"><span class="spin"></span>Saving…</span>
+  </div>
+  <div class="toolbar-right">
+    <button class="tbtn tbtn-primary" onclick="window.print()">🖨 Export PDF</button>
+  </div>
+</div>
+
+<div class="doc-wrap">
+<div class="doc">
+  <div class="doc-header">
+    <div>
+      <div class="doc-brand">
+        <div class="doc-brand-icon">A</div>
+        <div class="doc-brand-name">atomix<em>.</em></div>
+      </div>
+      <div class="doc-co-info">Atomix Logistics<br>5235 International Dr Suite B<br>Cudahy, WI 53110<br>(414) 234-3930</div>
+    </div>
+    <div class="doc-hdr-right">
+      <div class="doc-type-lbl">Freight Quotation</div>
+      <div class="doc-title">FREIGHT<br>QUOTE</div>
+      <div class="doc-meta-grid">
+        <div class="doc-meta-row"><span class="doc-meta-lbl">Quote #</span><input class="doc-meta-input" id="f-qnum" placeholder="FQ-0001" maxlength="20"/></div>
+        <div class="doc-meta-row"><span class="doc-meta-lbl">Date</span><input class="doc-meta-input" id="f-date" placeholder="MM/DD/YYYY"/></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-band">
+    <div class="band-cell"><div class="band-lbl">Origin</div><input class="band-input" id="d-origin" value="Oak Creek, WI"/></div>
+    <div class="band-cell"><div class="band-lbl">Destination</div><input class="band-input" id="d-dest" placeholder="City, State"/></div>
+    <div class="band-cell"><div class="band-lbl">Weight / Freight Type</div><input class="band-input" id="d-weight" placeholder="e.g. 2,400 lbs · LTL"/></div>
+  </div>
+
+  <div class="doc-parties">
+    <div class="party-block">
+      <div class="party-lbl">Prepared For</div>
+      <div class="client-sel-wrap">
+        <select class="client-sel" id="client-sel"><option value="">— Select a client —</option></select>
+      </div>
+      <input class="party-input" id="p-contact" placeholder="Contact Name"/>
+      <input class="party-input" id="p-email" placeholder="Email Address"/>
+      <input class="party-input" id="p-phone" placeholder="Phone Number"/>
+    </div>
+    <div class="party-block">
+      <div class="party-lbl">Prepared By <span class="locked-tag" id="rep-lock-tag">🔒 Manager Only</span></div>
+      <div class="rep-val" id="rep-display">
+        <strong id="rd-name">Atomix Logistics</strong>
+        <span id="rd-title">Head of Retail</span><br>
+        <span id="rd-email">Ops@atomixlogistics.com</span><br>
+        <span id="rd-phone">(414) 234-3930</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <div class="notes-lbl">Shipment Notes</div>
+    <textarea class="notes-input" id="f-notes" rows="2" placeholder="e.g. 4 pallets, floor-loaded, no hazmat. Include any special handling or pickup window requirements…"></textarea>
+  </div>
+
+  <div class="doc-body">
+    <div class="carriers-hdr">
+      <div class="carriers-title">Carrier Options</div>
+      <div class="carriers-sub">All rates are estimates — final pricing subject to carrier confirmation.</div>
+    </div>
+    <table class="ctable">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th>Carrier</th>
+          <th>Est. Arrival Date</th>
+          <th>Rate (USD)</th>
+          <th class="no-print" style="width:100px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="carrier-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="doc-footer">
+    <div class="footer-note-wrap">
+      <div class="footer-lbl">Next Steps</div>
+      <textarea class="footer-note" id="f-nextsteps" rows="3">To accept a quote, reply with your preferred carrier option and we will initiate booking. For questions contact your Atomix representative directly.</textarea>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Authorized by Atomix Logistics</div>
+    </div>
+  </div>
+
+  <div class="doc-stamp">
+    <div class="doc-stamp-text">Atomix Logistics · 5235 International Dr Suite B, Cudahy WI 53110 · (414) 234-3930 · atomixlogistics.com</div>
+    <div class="doc-stamp-logo">atomix<em>.</em></div>
+  </div>
+</div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="overlay" id="modal-pin">
+  <div class="modal">
+    <h4>Manager Login</h4>
+    <p>Enter your 4-digit PIN</p>
+    <div class="pin-dots"><div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div></div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="keypad">
+      <button class="kbtn" data-k="1">1</button><button class="kbtn" data-k="2">2</button><button class="kbtn" data-k="3">3</button>
+      <button class="kbtn" data-k="4">4</button><button class="kbtn" data-k="5">5</button><button class="kbtn" data-k="6">6</button>
+      <button class="kbtn" data-k="7">7</button><button class="kbtn" data-k="8">8</button><button class="kbtn" data-k="9">9</button>
+      <button class="kbtn sm" data-k="cancel">Cancel</button><button class="kbtn" data-k="0">0</button><button class="kbtn sm" data-k="back">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE CARRIERS -->
+<div class="overlay" id="modal-carriers">
+  <div class="big-modal">
+    <h4>⚙ Manage Carriers</h4>
+    <p class="sub">Saved carriers appear in the dropdown on each quote row — synced across all devices.</p>
+    <div class="mgr-lbl">Add Carrier</div>
+    <div class="mgr-add-row">
+      <input class="mgr-input" id="new-carrier" placeholder="e.g. FedEx Freight, XPO, Estes…"/>
+      <button class="mgr-add-btn" onclick="addCarrierToList()">+ Add</button>
+    </div>
+    <div class="mgr-lbl">Saved Carriers</div>
+    <div class="mgr-list" id="carriers-mgr-list"><div class="empty-mgr">No carriers saved yet.</div></div>
+    <div class="modal-actions"><button class="mbtn-cancel" onclick="closeModal('modal-carriers')">Done</button></div>
+  </div>
+</div>
+
+<!-- MANAGE CLIENTS -->
+<div class="overlay" id="modal-clients">
+  <div class="big-modal">
+    <h4>⚙ Manage Clients</h4>
+    <p class="sub">Brand Hub clients load automatically. Add extras here if needed.</p>
+    <div class="mgr-lbl">Add Custom Client</div>
+    <div class="mgr-add-row">
+      <input class="mgr-input" id="new-custom-client" placeholder="Client / Company Name"/>
+      <button class="mgr-add-btn" onclick="addCustomClient()">+ Add</button>
+    </div>
+    <div class="mgr-lbl">Custom Clients</div>
+    <div class="mgr-list" id="custom-clients-mgr-list"><div class="empty-mgr">No custom clients. Brand Hub clients load automatically.</div></div>
+    <div class="modal-actions"><button class="mbtn-cancel" onclick="closeModal('modal-clients')">Done</button></div>
+  </div>
+</div>
+
+<!-- EDIT PREPARED BY -->
+<div class="overlay" id="modal-rep">
+  <div class="big-modal" style="width:400px">
+    <h4>✏️ Edit Prepared By</h4>
+    <p class="sub">Auto-fills on every new quote — saved to Firebase.</p>
+    <div class="vfield"><label>Name / Company</label><input id="rep-name-in" value="Atomix Logistics"/></div>
+    <div class="vfield"><label>Title / Role</label><input id="rep-title-in" value="Head of Retail"/></div>
+    <div class="vfield"><label>Email</label><input id="rep-email-in" value="Ops@atomixlogistics.com"/></div>
+    <div class="vfield"><label>Phone</label><input id="rep-phone-in" value="(414) 234-3930"/></div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="closeModal('modal-rep')">Cancel</button>
+      <button class="mbtn-save" onclick="saveRepInfo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MANAGER_PIN = '6969';
+let isManager = false, pinBuf = '';
+let savedCarriers = [];
+let brandClients = [];
+let customClients = [];
+let repInfo = { name:'Atomix Logistics', title:'Head of Retail', email:'Ops@atomixlogistics.com', phone:'(414) 234-3930' };
+let rowCount = 0;
+
+// ── FIREBASE HELPERS ──
+async function waitFB() {
+  if (window._db) return;
+  await new Promise(r => window.addEventListener('fb-ready', r, {once:true}));
+}
+function showSaving() { document.getElementById('savingInd').classList.add('show'); }
+function hideSaving() { setTimeout(()=>document.getElementById('savingInd').classList.remove('show'), 700); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── INIT ──
+async function init() {
+  await waitFB();
+  const db = window._db;
+
+  // Quote number
+  const cref = window._doc(db,'freightQuote','config');
+  const csnap = await window._getDoc(cref).catch(()=>null);
+  const cfg = csnap && csnap.exists() ? csnap.data() : {};
+  repInfo = { ...repInfo, ...(cfg.repInfo||{}) };
+  const nextNum = (cfg.counter||0) + 1;
+  await window._setDoc(cref, {...cfg, repInfo, counter: nextNum}, {merge:true}).catch(()=>{});
+  document.getElementById('f-qnum').value = `FQ-${String(nextNum).padStart(4,'0')}`;
+  document.getElementById('f-date').value = new Date().toLocaleDateString('en-US');
+  applyRepDisplay();
+
+  // Live: brand clients
+  window._onSnapshot(window._col(db,'brandClients'), snap => {
+    brandClients = [];
+    snap.forEach(d => { if(d.data().name) brandClients.push(d.data().name); });
+    refreshClientDropdown();
+  });
+
+  // Live: custom clients
+  window._onSnapshot(window._col(db,'freightCustomClients'), snap => {
+    customClients = [];
+    snap.forEach(d => customClients.push({id:d.id, name:d.data().name||''}));
+    renderCustomClientsMgr();
+    refreshClientDropdown();
+  });
+
+  // Live: carriers
+  window._onSnapshot(window._col(db,'freightCarriers'), snap => {
+    savedCarriers = [];
+    snap.forEach(d => savedCarriers.push({id:d.id, name:d.data().name||''}));
+    savedCarriers.sort((a,b)=>a.name.localeCompare(b.name));
+    renderCarriersMgr();
+    refreshAllCarrierDropdowns();
+  });
+
+  // Default rows
+  for(let i=0;i<3;i++) addCarrierRow();
+}
+
+// ── CLIENT DROPDOWN ──
+function refreshClientDropdown() {
+  const sel = document.getElementById('client-sel');
+  const prev = sel.value;
+  const all = [...new Set([...brandClients, ...customClients.map(c=>c.name)])].sort();
+  sel.innerHTML = '<option value="">— Select a client —</option>' +
+    all.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(prev) sel.value = prev;
+}
+
+// ── REP INFO ──
+function applyRepDisplay() {
+  document.getElementById('rd-name').textContent = repInfo.name;
+  document.getElementById('rd-title').textContent = repInfo.title;
+  document.getElementById('rd-email').textContent = repInfo.email;
+  document.getElementById('rd-phone').textContent = repInfo.phone;
+}
+function openRep() {
+  document.getElementById('rep-name-in').value = repInfo.name;
+  document.getElementById('rep-title-in').value = repInfo.title;
+  document.getElementById('rep-email-in').value = repInfo.email;
+  document.getElementById('rep-phone-in').value = repInfo.phone;
+  openModal('modal-rep');
+}
+async function saveRepInfo() {
+  repInfo = {
+    name: document.getElementById('rep-name-in').value.trim(),
+    title: document.getElementById('rep-title-in').value.trim(),
+    email: document.getElementById('rep-email-in').value.trim(),
+    phone: document.getElementById('rep-phone-in').value.trim(),
+  };
+  applyRepDisplay();
+  showSaving();
+  const cref = window._doc(window._db,'freightQuote','config');
+  const csnap = await window._getDoc(cref).catch(()=>null);
+  const existing = csnap && csnap.exists() ? csnap.data() : {};
+  await window._setDoc(cref, {...existing, repInfo}, {merge:true}).catch(()=>{});
+  hideSaving();
+  closeModal('modal-rep');
+}
+
+// ── CARRIERS LIST ──
+function buildCarrierOptions(selected='') {
+  if(!savedCarriers.length) return '<option value="">— Type below or add carriers in ⚙ —</option>';
+  return '<option value="">— Select carrier —</option>' +
+    savedCarriers.map(c=>`<option value="${esc(c.name)}"${c.name===selected?' selected':''}>${esc(c.name)}</option>`).join('') +
+    '<option value="__custom__">+ Custom…</option>';
+}
+function refreshAllCarrierDropdowns() {
+  document.querySelectorAll('.csel').forEach(sel => {
+    const prev = sel.value;
+    sel.innerHTML = buildCarrierOptions(prev==='__custom__'?'':prev);
+    if(prev && prev!=='__custom__') sel.value = prev;
+  });
+}
+function renderCarriersMgr() {
+  const el = document.getElementById('carriers-mgr-list');
+  if(!savedCarriers.length){ el.innerHTML='<div class="empty-mgr">No carriers saved yet.</div>'; return; }
+  el.innerHTML = savedCarriers.map(c=>`
+    <div class="mgr-item">
+      <span class="mgr-item-name">${esc(c.name)}</span>
+      <button class="mgr-del-btn" onclick="deleteCarrier('${c.id}')">✕</button>
+    </div>`).join('');
+}
+async function addCarrierToList() {
+  const name = document.getElementById('new-carrier').value.trim();
+  if(!name) return;
+  if(savedCarriers.find(c=>c.name.toLowerCase()===name.toLowerCase())){ alert('Carrier already exists.'); return; }
+  showSaving();
+  const ref = window._doc(window._col(window._db,'freightCarriers'));
+  await window._setDoc(ref,{name, createdAt:window._sts()}).catch(()=>{});
+  document.getElementById('new-carrier').value = '';
+  hideSaving();
+}
+async function deleteCarrier(id) {
+  if(!confirm('Remove this carrier?')) return;
+  showSaving();
+  await window._deleteDoc(window._doc(window._db,'freightCarriers',id)).catch(()=>{});
+  hideSaving();
+}
+
+// ── CUSTOM CLIENTS ──
+function renderCustomClientsMgr() {
+  const el = document.getElementById('custom-clients-mgr-list');
+  if(!customClients.length){ el.innerHTML='<div class="empty-mgr">No custom clients. Brand Hub clients load automatically.</div>'; return; }
+  el.innerHTML = customClients.map(c=>`
+    <div class="mgr-item">
+      <span class="mgr-item-name">${esc(c.name)}</span>
+      <button class="mgr-del-btn" onclick="deleteCustomClient('${c.id}')">✕</button>
+    </div>`).join('');
+}
+async function addCustomClient() {
+  const name = document.getElementById('new-custom-client').value.trim();
+  if(!name) return;
+  showSaving();
+  const ref = window._doc(window._col(window._db,'freightCustomClients'));
+  await window._setDoc(ref,{name, createdAt:window._sts()}).catch(()=>{});
+  document.getElementById('new-custom-client').value = '';
+  hideSaving();
+}
+async function deleteCustomClient(id) {
+  if(!confirm('Remove this client?')) return;
+  showSaving();
+  await window._deleteDoc(window._doc(window._db,'freightCustomClients',id)).catch(()=>{});
+  hideSaving();
+}
+
+// ── CARRIER ROWS ──
+function addCarrierRow(data={}) {
+  rowCount++;
+  const n = rowCount;
+  const tbody = document.getElementById('carrier-tbody');
+  const tr = document.createElement('tr');
+  tr.id = `row-${n}`;
+  if(data.recommended) tr.classList.add('recommended');
+  tr.innerHTML = `
+    <td style="font-size:11px;font-weight:700;color:#94a3b8;text-align:center" class="rnum">${tbody.rows.length+1}</td>
+    <td>
+      <div class="csel-wrap">
+        <select class="csel" id="csel-${n}" onchange="onCarrierChange(${n})">${buildCarrierOptions(data.carrier||'')}</select>
+      </div>
+      <input class="ct-input" id="ccustom-${n}" placeholder="Type carrier name…" style="display:none;margin-top:5px;border-bottom:1px dashed #cbd5e1;font-size:12px" value=""/>
+    </td>
+    <td><input class="ct-input" id="carrival-${n}" placeholder="MM/DD/YYYY" value="${esc(data.arrival||'')}"/></td>
+    <td><input class="ct-price" id="crate-${n}" placeholder="$0.00" value="${esc(data.rate||'')}"/></td>
+    <td class="no-print">
+      <div class="act-cell">
+        <button class="rec-btn" id="recbtn-${n}" onclick="toggleRec('row-${n}',${n})">${data.recommended?'<span style="color:#3EBD84">★ Rec</span>':'☆ Rec'}</button>
+        <button class="del-btn" onclick="deleteRow('row-${n}')">✕</button>
+      </div>
+    </td>`;
+  tbody.appendChild(tr);
+  renumber();
+}
+function onCarrierChange(n) {
+  const sel = document.getElementById(`csel-${n}`);
+  const cust = document.getElementById(`ccustom-${n}`);
+  cust.style.display = sel.value==='__custom__' ? 'block' : 'none';
+  if(sel.value==='__custom__') cust.focus();
+}
+function deleteRow(id) {
+  if(document.getElementById('carrier-tbody').rows.length<=1){ alert('At least one carrier row required.'); return; }
+  document.getElementById(id)?.remove();
+  renumber();
+}
+function renumber() {
+  document.querySelectorAll('#carrier-tbody tr').forEach((tr,i)=>{
+    const c=tr.querySelector('.rnum'); if(c) c.textContent=i+1;
+  });
+}
+function toggleRec(id, n) {
+  const isRec = document.getElementById(id)?.classList.contains('recommended');
+  document.querySelectorAll('#carrier-tbody tr').forEach(r=>{
+    r.classList.remove('recommended');
+    const b=r.querySelector('.rec-btn'); if(b) b.innerHTML='☆ Rec';
+  });
+  if(!isRec) {
+    document.getElementById(id)?.classList.add('recommended');
+    const b=document.getElementById(`recbtn-${n}`); if(b) b.innerHTML='<span style="color:#3EBD84">★ Rec</span>';
+  }
+}
+
+// ── CLEAR ──
+function clearDoc() {
+  if(!confirm('Start a new quote? Current fields will be cleared.')) return;
+  ['d-dest','d-weight','p-contact','p-email','p-phone','f-notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('client-sel').value='';
+  document.getElementById('d-origin').value='Oak Creek, WI';
+  document.getElementById('f-nextsteps').value='To accept a quote, reply with your preferred carrier option and we will initiate booking. For questions contact your Atomix representative directly.';
+  document.getElementById('carrier-tbody').innerHTML='';
+  rowCount=0;
+  for(let i=0;i<3;i++) addCarrierRow();
+  // new quote number
+  (async()=>{
+    const cref=window._doc(window._db,'freightQuote','config');
+    const csnap=await window._getDoc(cref).catch(()=>null);
+    const existing=csnap&&csnap.exists()?csnap.data():{};
+    const next=(existing.counter||0)+1;
+    await window._setDoc(cref,{...existing,counter:next},{merge:true}).catch(()=>{});
+    document.getElementById('f-qnum').value=`FQ-${String(next).padStart(4,'0')}`;
+    document.getElementById('f-date').value=new Date().toLocaleDateString('en-US');
+  })();
+}
+
+// ── MANAGER MODE ──
+function handleModeBtn() { isManager ? exitManager() : openModal('modal-pin'); }
+function exitManager() {
+  isManager=false;
+  document.getElementById('modeBadge').textContent='🔒 Locked';
+  document.getElementById('modeBadge').className='mode-badge locked';
+  document.getElementById('modeBtn').textContent='Manager Login';
+  document.getElementById('modeBtn').className='mode-btn';
+  ['btnMgrCarriers','btnMgrClients','btnMgrRep'].forEach(id=>document.getElementById(id).classList.add('tbtn-disabled'));
+}
+function unlockManager() {
+  isManager=true;
+  document.getElementById('modeBadge').textContent='✓ Unlocked';
+  document.getElementById('modeBadge').className='mode-badge unlocked';
+  document.getElementById('modeBtn').textContent='Exit Manager';
+  document.getElementById('modeBtn').className='mode-btn exit';
+  ['btnMgrCarriers','btnMgrClients','btnMgrRep'].forEach(id=>document.getElementById(id).classList.remove('tbtn-disabled'));
+}
+function updateDots(){ for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled',i<pinBuf.length); }
+document.querySelectorAll('.kbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const k=btn.dataset.k;
+    if(k==='cancel'){closeModal('modal-pin');pinBuf='';updateDots();return;}
+    if(k==='back'){pinBuf=pinBuf.slice(0,-1);updateDots();return;}
+    if(pinBuf.length>=4) return;
+    pinBuf+=k; updateDots();
+    if(pinBuf.length===4){
+      setTimeout(()=>{
+        if(pinBuf===MANAGER_PIN){ closeModal('modal-pin'); unlockManager(); pinBuf=''; updateDots(); }
+        else{ document.getElementById('pinErr').textContent='Incorrect PIN — try again'; pinBuf=''; updateDots(); }
+      },120);
+    }
+  });
+});
+
+// ── MODAL HELPERS ──
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); pinBuf=''; updateDots(); document.getElementById('pinErr').textContent=''; }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o){ o.classList.remove('open'); pinBuf=''; updateDots(); }}));
+
+init();
+</script>
+</body>
+</html>
