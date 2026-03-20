@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Packing Slip Maker — Atomix</title>
+<style>
+/* ── RESET ── */
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ── SCREEN UI ── */
+body{background:#0f1117;color:#e2e8f0;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid #1e2330;background:#0f1117;flex-wrap:wrap;gap:10px}
+.nav-left{display:flex;align-items:center;gap:16px}
+.nav-logo{font-size:15px;font-weight:700;color:#fff}
+.nav-logo span{color:#3EBD84}
+.nav-back{font-size:12px;color:#94a3b8;text-decoration:none;display:flex;align-items:center;gap:5px}
+.nav-back:hover{color:#fff}
+.nav-right{display:flex;align-items:center;gap:10px}
+.mode-badge{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
+.mode-badge.locked{background:#1e2330;color:#64748b}
+.mode-badge.unlocked{background:#0f3324;color:#3EBD84}
+.mode-btn{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #2d3448;background:#1e2330;color:#94a3b8;font-family:'Segoe UI',sans-serif;transition:all .15s}
+.mode-btn:hover{color:#fff;border-color:#4d5568}
+.mode-btn.exit{border-color:#7f1d1d;color:#f87171}
+.mode-btn.exit:hover{background:#7f1d1d22}
+
+.page-header{padding:20px 28px 0;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.page-header-text h1{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}
+.page-header-text p{font-size:12px;color:#64748b}
+
+/* CLIENT SELECTOR */
+.client-bar{padding:14px 28px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1e2330;flex-wrap:wrap}
+.client-bar label{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.client-select-wrap{position:relative;flex:1;max-width:340px}
+.client-select-wrap select{width:100%;padding:9px 32px 9px 12px;border:1px solid #2d3448;border-radius:8px;background:#1e2330;color:#e2e8f0;font-size:13px;font-weight:600;font-family:'Segoe UI',sans-serif;appearance:none;cursor:pointer;outline:none;transition:border-color .15s}
+.client-select-wrap select:focus{border-color:#3EBD84}
+.client-select-wrap::after{content:'▾';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#64748b;pointer-events:none;font-size:12px}
+.client-info-pill{font-size:11px;color:#3EBD84;background:#0f3324;border:1px solid #1a4d33;padding:4px 12px;border-radius:20px;font-weight:600}
+.client-info-pill.empty{color:#64748b;background:#1e2330;border-color:#2d3448}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 28px;align-items:center}
+.toolbar button{padding:8px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:'Segoe UI',sans-serif}
+.toolbar button:hover{opacity:.8}
+.btn-print{background:#3EBD84;color:#0f1117}
+.btn-clear{background:#1e2330;color:#94a3b8;border:1px solid #2d3448}
+.btn-addrow{background:#16a34a22;color:#4ade80;border:1px solid #16a34a55}
+.btn-remrow{background:#dc262622;color:#f87171;border:1px solid #dc262655}
+.btn-skumgr{background:#3EBD8422;color:#3EBD84;border:1px solid #3EBD8455}
+.btn-skumgr:disabled{opacity:.35;cursor:not-allowed}
+.btn-editv{padding:6px 13px !important;background:#6366f122;color:#818cf8;border:1px solid #6366f155}
+.lock-hint{font-size:11px;color:#64748b;padding:0 28px 10px;font-style:italic}
+
+/* ── OVERLAYS / MODALS ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#161b27;border:1px solid #2d3448;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.8);width:290px;text-align:center}
+.modal h4{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+.modal .sub{font-size:12px;color:#64748b;margin-bottom:16px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin:12px 0}
+.pin-dot{width:13px;height:13px;border-radius:50%;background:#2d3448;transition:background .12s}
+.pin-dot.filled{background:#3EBD84}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.kbtn{padding:13px;border:1px solid #2d3448;border-radius:9px;background:#1e2330;cursor:pointer;font-size:17px;font-weight:600;color:#e2e8f0;font-family:'Segoe UI',sans-serif;transition:background .1s}
+.kbtn:hover{background:#2d3448}
+.kbtn:active{background:#374151}
+.kbtn.sm{font-size:13px;color:#94a3b8}
+.pin-err{font-size:12px;color:#f87171;min-height:18px;margin-top:6px}
+
+/* BIG MODAL BASE */
+.big-modal{background:#161b27;border:1px solid #2d3448;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.8);max-width:95vw;max-height:90vh;overflow-y:auto;text-align:left}
+.big-modal h4{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+.big-modal .sub{font-size:12px;color:#64748b;margin-bottom:18px}
+
+/* VENDOR MODAL */
+.vendor-modal{width:440px}
+.vfield{margin-bottom:13px}
+.vfield label{display:block;font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.vfield input,.vfield textarea{width:100%;padding:9px 10px;border:1px solid #2d3448;border-radius:8px;font-size:13px;background:#1e2330;color:#e2e8f0;font-family:'Segoe UI',sans-serif}
+.vfield input:focus{outline:none;border-color:#3EBD84}
+.vact-row{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.vbtn-cancel{padding:9px 16px;border:1px solid #2d3448;border-radius:8px;background:transparent;cursor:pointer;font-size:13px;color:#94a3b8;font-family:'Segoe UI',sans-serif}
+.vbtn-cancel:hover{background:#1e2330}
+.vbtn-save{padding:9px 20px;border:none;border-radius:8px;background:#3EBD84;cursor:pointer;font-size:13px;color:#0f1117;font-weight:700;font-family:'Segoe UI',sans-serif}
+.vbtn-save:hover{opacity:.88}
+
+/* SKU MODAL */
+.sku-modal{width:600px}
+.sku-client-banner{background:#0f3324;border:1px solid #1a4d33;border-radius:8px;padding:9px 14px;margin-bottom:16px;font-size:12px;color:#3EBD84;font-weight:600}
+.sku-col-heads{display:grid;grid-template-columns:170px 1fr 110px 34px;gap:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em}
+.sku-list{border:1px solid #2d3448;border-radius:8px;overflow:hidden;margin-bottom:14px;max-height:300px;overflow-y:auto}
+.sku-item{display:grid;grid-template-columns:170px 1fr 110px 34px;gap:6px;align-items:center;padding:6px 10px;border-bottom:1px solid #1e2330}
+.sku-item:last-child{border-bottom:none}
+.sku-item:nth-child(even){background:#1a1f2e}
+.sku-item input{background:#0f1117;border:1px solid #2d3448;border-radius:5px;padding:4px 7px;font-size:11px;color:#e2e8f0;font-family:'Segoe UI',sans-serif;width:100%}
+.sku-item input:focus{outline:none;border-color:#3EBD84}
+.sku-del-btn{background:none;border:none;color:#ef4444;cursor:pointer;font-size:15px;padding:2px;line-height:1}
+.sku-del-btn:hover{color:#ff6b6b}
+.sku-add-section{display:grid;grid-template-columns:170px 1fr 110px auto;gap:6px;align-items:center;padding:10px;background:#0f1117;border:1px solid #2d3448;border-radius:8px;margin-bottom:14px}
+.sku-add-section input{background:#1e2330;border:1px solid #2d3448;border-radius:5px;padding:7px 8px;font-size:12px;color:#e2e8f0;font-family:'Segoe UI',sans-serif;width:100%}
+.sku-add-section input:focus{outline:none;border-color:#3EBD84}
+.sku-add-section input::placeholder{color:#475569}
+.sku-add-btn{padding:7px 14px;background:#3EBD84;border:none;border-radius:6px;color:#0f1117;font-size:12px;font-weight:700;cursor:pointer;font-family:'Segoe UI',sans-serif;white-space:nowrap}
+.sku-add-btn:hover{opacity:.88}
+.sku-empty{text-align:center;padding:28px;color:#475569;font-size:12px}
+.sku-saving{font-size:11px;color:#3EBD84;padding:4px 0;display:none}
+
+/* CSV IMPORT */
+.csv-import-bar{display:flex;align-items:center;gap:10px;background:#0f1117;border:1px solid #2d3448;border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.csv-import-bar label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.csv-file-btn{padding:6px 14px;background:#1e2330;border:1px solid #3EBD8455;border-radius:6px;color:#3EBD84;font-size:12px;font-weight:700;cursor:pointer;font-family:'Segoe UI',sans-serif;transition:all .15s;white-space:nowrap}
+.csv-file-btn:hover{background:#0f3324;border-color:#3EBD84}
+.csv-file-name{font-size:11px;color:#64748b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csv-import-btn{padding:6px 16px;background:#3EBD84;border:none;border-radius:6px;color:#0f1117;font-size:12px;font-weight:700;cursor:pointer;font-family:'Segoe UI',sans-serif;white-space:nowrap;display:none}
+.csv-import-btn:hover{opacity:.88}
+.csv-preview{background:#0f1117;border:1px solid #2d3448;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:none}
+.csv-preview-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.csv-preview-title{font-size:11px;font-weight:700;color:#3EBD84}
+.csv-preview-counts{font-size:11px;color:#64748b}
+.csv-preview-list{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.csv-preview-row{display:grid;grid-template-columns:160px 1fr;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px solid #1e2330}
+.csv-preview-row:last-child{border-bottom:none}
+.csv-preview-sku{color:#94a3b8;font-weight:600}
+.csv-preview-desc{color:#e2e8f0}
+.csv-preview-row.skip{opacity:.4}
+.csv-preview-row.skip .csv-preview-sku::after{content:' (exists)';color:#475569;font-weight:400}
+.csv-import-result{font-size:12px;padding:6px 0;display:none}
+.csv-result-ok{color:#3EBD84}
+.csv-result-err{color:#f87171}
+
+/* ── PRINT ── */
+@media print {
+  body{background:#fff !important}
+  nav,.page-header,.client-bar,.toolbar,.lock-hint,.no-print{display:none !important}
+  .slip-wrap{padding:0 !important}
+  .slip{border:none !important;box-shadow:none !important;max-width:100% !important;padding:10px !important}
+  select,input{border:none !important;background:transparent !important;color:#111 !important}
+}
+
+/* ── SLIP (white paper) ── */
+.slip-wrap{padding:0 28px 48px}
+.slip{background:#fff;color:#111;width:100%;max-width:980px;margin:0 auto;padding:20px;font-size:11px;font-family:Arial,sans-serif;border:1px solid #333}
+.slip-top{display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:8px}
+.co p{line-height:1.7;font-size:11px;color:#111}
+.slip-title{text-align:right}
+.slip-title h1{font-size:22px;font-weight:700;color:#4a4a6a;letter-spacing:3px;margin-bottom:8px}
+.meta{border-collapse:collapse;min-width:220px;margin-left:auto}
+.meta td{border:1px solid #aaa;padding:3px 8px;font-size:10px;color:#111}
+.meta td.lbl{background:#e8e8e8;font-weight:700;width:80px}
+.meta input{border:none;outline:none;font-size:10px;width:130px;font-family:Arial,sans-serif;color:#111}
+.vs{display:grid;grid-template-columns:1fr 1fr;border:1px solid #aaa;margin-bottom:8px}
+.vb{padding:8px 10px}
+.vb:first-child{border-right:1px solid #aaa}
+.vb .sec-lbl{font-weight:700;font-size:10px;text-transform:uppercase;margin-bottom:4px;color:#333}
+.vb p{line-height:1.65;font-size:10.5px;color:#111}
+.vb input{border:none;border-bottom:1px dashed #ccc;outline:none;font-size:10.5px;width:100%;font-family:Arial,sans-serif;background:transparent;padding:1px 2px;margin-bottom:1px;color:#111}
+.sum-head{display:grid;grid-template-columns:2fr 1fr 1fr 1.3fr 1.3fr;border:1px solid #aaa;border-bottom:none}
+.sum-data{display:grid;grid-template-columns:2fr 1fr 1fr 1.3fr 1.3fr;border:1px solid #aaa;border-bottom:none}
+.sh{background:#e8e8e8;font-weight:700;font-size:9.5px;padding:4px 6px;text-align:center;text-transform:uppercase;border-right:1px solid #aaa;color:#111}
+.sh:last-child{border-right:none}
+.sd{padding:3px 6px;border-right:1px solid #aaa;text-align:center;color:#111}
+.sd:last-child{border-right:none}
+.sd input{border:none;outline:none;font-size:10px;width:100%;text-align:center;font-family:Arial,sans-serif;color:#111}
+.green-bar{background:#22c55e;height:10px;border:1px solid #aaa;border-top:none;border-bottom:none}
+.items{width:100%;border-collapse:collapse;border:1px solid #aaa}
+.items th{background:#e8e8e8;font-weight:700;font-size:9.5px;padding:5px 6px;border:1px solid #aaa;text-align:center;text-transform:uppercase;color:#111}
+.items td{border:1px solid #ddd;padding:2px 4px;vertical-align:middle;color:#111}
+.items tr:nth-child(even) td{background:#f9f9f9}
+.items select,.items input[type=text],.items input[type=number]{border:none;outline:none;font-size:10.5px;width:100%;font-family:Arial,sans-serif;background:transparent;padding:1px 2px;color:#111}
+.items td.td-sku{width:165px}
+.items td.td-unit{width:120px}
+.items td.td-qty{width:90px;text-align:center}
+.items td.td-ship{width:90px;text-align:center}
+.items td.td-del{width:30px;text-align:center}
+.items input[type=number]{text-align:center}
+.del-btn{background:none;border:none;color:#cc0000;font-size:14px;cursor:pointer;padding:0;line-height:1}
+.del-btn:hover{color:#ff0000}
+.slip-footer{margin-top:10px;border-top:1px solid #aaa;padding-top:6px;font-size:9.5px;color:#666;text-align:center}
+.no-client-msg{text-align:center;padding:60px 20px;color:#64748b;font-size:14px}
+.no-client-msg .icon{font-size:40px;margin-bottom:12px;opacity:.4}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-left">
+    <a class="nav-back" href="index.html">← All Tools</a>
+    <span class="nav-logo">atomix<span>.</span></span>
+  </div>
+  <div class="nav-right">
+    <span class="mode-badge locked" id="modeBadge">🔒 Locked</span>
+    <button class="mode-btn" id="modeBtn" onclick="handleModeBtn()">Manager Login</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-text">
+    <h1>📦 Packing Slip Maker</h1>
+    <p>Select a client, fill in order details, then print or save as PDF.</p>
+  </div>
+</div>
+
+<div class="client-bar">
+  <label>Client</label>
+  <div class="client-select-wrap">
+    <select id="client-select" onchange="onClientChange()">
+      <option value="">— Select a client —</option>
+    </select>
+  </div>
+  <span class="client-info-pill empty" id="sku-count-pill">No client selected</span>
+</div>
+
+<div id="lockHint" class="lock-hint">🔒 Log in as Manager to edit vendor info or manage client SKUs.</div>
+
+<div class="toolbar">
+  <button class="btn-print" onclick="window.print()">🖨 Print / Save PDF</button>
+  <button class="btn-addrow" onclick="addRow()">+ Add Row</button>
+  <button class="btn-remrow" onclick="removeRow()">− Remove Row</button>
+  <button class="btn-clear" onclick="clearSlip()">🗑 Clear All</button>
+  <button id="editVendorBtn" class="btn-editv" style="display:none" onclick="openVendorEdit()">✏️ Edit Vendor Info</button>
+  <button id="skuMgrBtn" class="btn-skumgr" style="display:none" onclick="openSkuMgr()" disabled>⚙ Manage SKUs</button>
+</div>
+
+<div class="slip-wrap">
+  <div id="slip-placeholder" class="no-client-msg">
+    <div class="icon">📋</div>
+    Select a client above to load their packing slip.
+  </div>
+
+  <div class="slip" id="slip" style="display:none">
+    <div class="slip-top">
+      <div class="co">
+        <p><strong>Atomix Logistics</strong><br>
+        <span id="disp-atomix-addr1">5235 International Dr Suite B</span><br>
+        <span id="disp-atomix-city">Cudahy, WI 53110</span><br>
+        Phone: <span id="disp-atomix-phone">(414) 234-3930</span></p>
+      </div>
+      <div class="slip-title">
+        <h1>PACKING SLIP</h1>
+        <table class="meta">
+          <tr><td class="lbl">DATE</td><td><input type="text" id="f-date" placeholder="MM/DD/YYYY"/></td></tr>
+          <tr><td class="lbl">PO #</td><td><input type="text" id="f-po" placeholder="PO Number"/></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="vs">
+      <div class="vb">
+        <div class="sec-lbl">Vendor</div>
+        <p>
+          <span id="disp-vendor-name"></span><br>
+          <span id="disp-vendor-line2">Atomix Logistics</span><br>
+          <span id="disp-vendor-line3">5235 International Dr Suite B</span><br>
+          Phone: <span id="disp-vendor-phone">(414) 234-3930</span>
+        </p>
+      </div>
+      <div class="vb">
+        <div class="sec-lbl">Ship To</div>
+        <input type="text" id="ship-name" placeholder="Company / Name"/>
+        <input type="text" id="ship-addr1" placeholder="Address Line 1"/>
+        <input type="text" id="ship-addr2" placeholder="Address Line 2"/>
+        <input type="text" id="ship-city" placeholder="City, State ZIP"/>
+      </div>
+    </div>
+
+    <div class="sum-head">
+      <div class="sh">Shipment PO</div><div class="sh">Cases</div><div class="sh">Pallets</div>
+      <div class="sh">Order Date</div><div class="sh">Pack Date</div>
+    </div>
+    <div class="sum-data">
+      <div class="sd"><input type="text" id="s-po" placeholder=""/></div>
+      <div class="sd"><input type="number" id="s-cases" placeholder="0" min="0"/></div>
+      <div class="sd"><input type="number" id="s-pallets" placeholder="0" min="0"/></div>
+      <div class="sd"><input type="text" id="s-odate" placeholder="MM/DD/YYYY"/></div>
+      <div class="sd"><input type="text" id="s-pdate" placeholder="MM/DD/YYYY"/></div>
+    </div>
+    <div class="green-bar"></div>
+
+    <table class="items">
+      <thead>
+        <tr>
+          <th>SKU</th><th>Description</th><th>Unit Type</th>
+          <th>Qty Ordered</th><th>Qty Shipped</th><th class="no-print"></th>
+        </tr>
+      </thead>
+      <tbody id="items-body"></tbody>
+    </table>
+    <div class="slip-footer">Atomix Logistics — Internal Use Only</div>
+  </div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div class="overlay" id="pinOverlay">
+  <div class="modal">
+    <h4>Manager Login</h4>
+    <p class="sub">Enter your 4-digit PIN</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="keypad">
+      <button class="kbtn" data-k="1">1</button><button class="kbtn" data-k="2">2</button><button class="kbtn" data-k="3">3</button>
+      <button class="kbtn" data-k="4">4</button><button class="kbtn" data-k="5">5</button><button class="kbtn" data-k="6">6</button>
+      <button class="kbtn" data-k="7">7</button><button class="kbtn" data-k="8">8</button><button class="kbtn" data-k="9">9</button>
+      <button class="kbtn sm" data-k="cancel">Cancel</button>
+      <button class="kbtn" data-k="0">0</button>
+      <button class="kbtn sm" data-k="back">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- VENDOR EDIT OVERLAY -->
+<div class="overlay" id="vendorOverlay">
+  <div class="big-modal vendor-modal">
+    <h4>✏️ Edit Vendor Info</h4>
+    <p class="sub">Changes apply to this session only (per-client).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <p style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:10px;text-transform:uppercase">Atomix (Ship From)</p>
+        <div class="vfield"><label>Address Line 1</label><input id="ve-atomix-addr1" type="text"/></div>
+        <div class="vfield"><label>City, State ZIP</label><input id="ve-atomix-city" type="text"/></div>
+        <div class="vfield"><label>Phone</label><input id="ve-atomix-phone" type="text"/></div>
+      </div>
+      <div>
+        <p style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:10px;text-transform:uppercase">Vendor / Client</p>
+        <div class="vfield"><label>Vendor Name</label><input id="ve-vendor-name" type="text"/></div>
+        <div class="vfield"><label>Line 2</label><input id="ve-vendor-line2" type="text"/></div>
+        <div class="vfield"><label>Address</label><input id="ve-vendor-line3" type="text"/></div>
+        <div class="vfield"><label>Phone</label><input id="ve-vendor-phone" type="text"/></div>
+      </div>
+    </div>
+    <div class="vact-row">
+      <button class="vbtn-cancel" onclick="document.getElementById('vendorOverlay').classList.remove('open')">Cancel</button>
+      <button class="vbtn-save" onclick="saveVendorEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- SKU MANAGER OVERLAY -->
+<div class="overlay" id="skuOverlay">
+  <div class="big-modal sku-modal">
+    <h4>⚙ Manage SKUs</h4>
+    <p class="sub">SKUs are saved per-client to Firebase and persist across sessions.</p>
+    <div class="sku-client-banner" id="sku-modal-banner">Client: —</div>
+
+    <!-- CSV IMPORT -->
+    <p style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Import from Inventory Export</p>
+    <div class="csv-import-bar">
+      <label>CSV / Excel</label>
+      <button class="csv-file-btn" onclick="document.getElementById('csv-file-input').click()">📂 Choose File</button>
+      <span class="csv-file-name" id="csv-file-name">No file selected</span>
+      <button class="csv-import-btn" id="csv-import-btn" onclick="importCsvSkus()">⬆ Import SKUs</button>
+    </div>
+    <div class="csv-preview" id="csv-preview">
+      <div class="csv-preview-head">
+        <span class="csv-preview-title">Preview</span>
+        <span class="csv-preview-counts" id="csv-preview-counts"></span>
+      </div>
+      <div class="csv-preview-list" id="csv-preview-list"></div>
+    </div>
+    <div class="csv-import-result" id="csv-import-result"></div>
+    <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="onCsvFileSelected(event)"/>
+
+    <p style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Add New SKU</p>
+    <div class="sku-add-section">
+      <input id="new-sku" placeholder="SKU code" maxlength="60"/>
+      <input id="new-desc" placeholder="Description"/>
+      <input id="new-unit" placeholder="Unit type" value="EACHES"/>
+      <button class="sku-add-btn" onclick="addSkuFromForm()">+ Add</button>
+    </div>
+    <div class="sku-col-heads">
+      <span>SKU</span><span>Description</span><span>Unit</span><span></span>
+    </div>
+    <div class="sku-list" id="skuList"></div>
+    <div class="sku-saving" id="sku-saving">💾 Saving…</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <button class="vbtn-save" onclick="document.getElementById('skuOverlay').classList.remove('open')">Done</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",
+  authDomain: "atomix-tools.firebaseapp.com",
+  projectId: "atomix-tools",
+  storageBucket: "atomix-tools.firebasestorage.app",
+  messagingSenderId: "211594945190",
+  appId: "1:211594945190:web:bf70681d9335816984ca67"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── CLIENT LIST — live from Firebase brandClients ──
+let ALL_CLIENTS = []; // { name, id (Firestore doc id) }
+
+const MANAGER_PIN = '6969';
+let isManager = false;
+let pinBuf = '';
+let currentClient = null; // { name, id (slugified) }
+let clientSkus = []; // in-memory SKUs for current client
+let vendorData = {
+  atomixAddr1: '5235 International Dr Suite B',
+  atomixCity: 'Cudahy, WI 53110',
+  atomixPhone: '(414) 234-3930',
+  vendorName: '',
+  vendorLine2: 'Atomix Logistics',
+  vendorLine3: '5235 International Dr Suite B',
+  vendorPhone: '(414) 234-3930'
+};
+
+// ── INIT — live sync from brandClients ──
+function populateClientDropdown() {
+  const sel = document.getElementById('client-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Select a client —</option>' +
+    ALL_CLIENTS
+      .slice().sort((a,b) => a.name.localeCompare(b.name))
+      .map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+
+function initClientSync() {
+  const sel = document.getElementById('client-select');
+  sel.innerHTML = '<option value="">⏳ Loading clients…</option>';
+  onSnapshot(collection(db, 'brandClients'), snap => {
+    ALL_CLIENTS = [];
+    snap.forEach(d => ALL_CLIENTS.push({ id: d.id, name: d.data().name || '' }));
+    populateClientDropdown();
+  });
+}
+
+// ── CLIENT CHANGE ──
+window.onClientChange = async function() {
+  const sel = document.getElementById('client-select');
+  const firestoreId = sel.value;
+  const name = sel.options[sel.selectedIndex]?.text || '';
+
+  if (!firestoreId) {
+    currentClient = null;
+    document.getElementById('slip').style.display = 'none';
+    document.getElementById('slip-placeholder').style.display = 'block';
+    document.getElementById('sku-count-pill').textContent = 'No client selected';
+    document.getElementById('sku-count-pill').className = 'client-info-pill empty';
+    const skuBtn = document.getElementById('skuMgrBtn');
+    if (skuBtn) skuBtn.disabled = true;
+    return;
+  }
+
+  currentClient = { name, id: firestoreId };
+  clientSkus = [];
+
+  // Load SKUs from Firebase
+  await loadClientSkus();
+
+  // Reset vendor name to client name
+  vendorData.vendorName = name;
+  applyVendorDisplay();
+
+  // Show slip
+  document.getElementById('slip-placeholder').style.display = 'none';
+  document.getElementById('slip').style.display = 'block';
+
+  // Set dates
+  const today = new Date().toLocaleDateString('en-US');
+  document.getElementById('f-date').value = today;
+  document.getElementById('s-odate').value = today;
+
+  // Clear rows and add defaults
+  document.getElementById('items-body').innerHTML = '';
+  for (let i = 0; i < 8; i++) addRow();
+
+  // Update pill
+  updateSkuPill();
+
+  if (isManager) document.getElementById('skuMgrBtn').disabled = false;
+};
+
+async function loadClientSkus() {
+  if (!currentClient) return;
+  try {
+    const snap = await getDocs(collection(db, `packingSkus_${currentClient.id}`));
+    clientSkus = [];
+    snap.forEach(d => clientSkus.push({ _docId: d.id, ...d.data() }));
+    clientSkus.sort((a,b) => (a.sku||'').localeCompare(b.sku||''));
+  } catch(e) {
+    clientSkus = [];
+  }
+}
+
+function updateSkuPill() {
+  const pill = document.getElementById('sku-count-pill');
+  if (!currentClient) { pill.textContent = 'No client selected'; pill.className = 'client-info-pill empty'; return; }
+  pill.textContent = `${clientSkus.length} SKU${clientSkus.length !== 1 ? 's' : ''} saved`;
+  pill.className = 'client-info-pill';
+}
+
+// ── VENDOR DISPLAY ──
+function applyVendorDisplay() {
+  document.getElementById('disp-atomix-addr1').textContent = vendorData.atomixAddr1;
+  document.getElementById('disp-atomix-city').textContent = vendorData.atomixCity;
+  document.getElementById('disp-atomix-phone').textContent = vendorData.atomixPhone;
+  document.getElementById('disp-vendor-name').textContent = vendorData.vendorName;
+  document.getElementById('disp-vendor-line2').textContent = vendorData.vendorLine2;
+  document.getElementById('disp-vendor-line3').textContent = vendorData.vendorLine3;
+  document.getElementById('disp-vendor-phone').textContent = vendorData.vendorPhone;
+}
+
+// ── MANAGER MODE ──
+function setManager(on) {
+  isManager = on;
+  document.getElementById('modeBadge').textContent = on ? '✓ Unlocked' : '🔒 Locked';
+  document.getElementById('modeBadge').className = 'mode-badge ' + (on ? 'unlocked' : 'locked');
+  document.getElementById('modeBtn').textContent = on ? 'Exit Manager' : 'Manager Login';
+  document.getElementById('modeBtn').className = 'mode-btn' + (on ? ' exit' : '');
+  document.getElementById('editVendorBtn').style.display = on ? 'inline-block' : 'none';
+  document.getElementById('skuMgrBtn').style.display = on ? 'inline-block' : 'none';
+  document.getElementById('skuMgrBtn').disabled = !currentClient;
+  document.getElementById('lockHint').style.display = on ? 'none' : 'block';
+}
+
+window.handleModeBtn = function() { isManager ? setManager(false) : openPin(); };
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) document.getElementById('pd'+i).classList.toggle('filled', i < pinBuf.length);
+}
+function openPin() {
+  pinBuf = ''; document.getElementById('pinErr').textContent = ''; updateDots();
+  document.getElementById('pinOverlay').classList.add('open');
+}
+
+document.querySelectorAll('.kbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const k = btn.dataset.k;
+    if (k === 'cancel') { document.getElementById('pinOverlay').classList.remove('open'); return; }
+    if (k === 'back') { pinBuf = pinBuf.slice(0,-1); updateDots(); return; }
+    if (pinBuf.length >= 4) return;
+    pinBuf += k; updateDots();
+    if (pinBuf.length === 4) {
+      setTimeout(() => {
+        if (pinBuf === MANAGER_PIN) {
+          document.getElementById('pinOverlay').classList.remove('open');
+          setManager(true);
+        } else {
+          document.getElementById('pinErr').textContent = 'Incorrect PIN — try again.';
+          pinBuf = ''; updateDots();
+        }
+      }, 120);
+    }
+  });
+});
+
+// ── VENDOR EDIT ──
+window.openVendorEdit = function() {
+  document.getElementById('ve-atomix-addr1').value = vendorData.atomixAddr1;
+  document.getElementById('ve-atomix-city').value = vendorData.atomixCity;
+  document.getElementById('ve-atomix-phone').value = vendorData.atomixPhone;
+  document.getElementById('ve-vendor-name').value = vendorData.vendorName;
+  document.getElementById('ve-vendor-line2').value = vendorData.vendorLine2;
+  document.getElementById('ve-vendor-line3').value = vendorData.vendorLine3;
+  document.getElementById('ve-vendor-phone').value = vendorData.vendorPhone;
+  document.getElementById('vendorOverlay').classList.add('open');
+};
+
+window.saveVendorEdit = function() {
+  vendorData.atomixAddr1 = document.getElementById('ve-atomix-addr1').value;
+  vendorData.atomixCity = document.getElementById('ve-atomix-city').value;
+  vendorData.atomixPhone = document.getElementById('ve-atomix-phone').value;
+  vendorData.vendorName = document.getElementById('ve-vendor-name').value;
+  vendorData.vendorLine2 = document.getElementById('ve-vendor-line2').value;
+  vendorData.vendorLine3 = document.getElementById('ve-vendor-line3').value;
+  vendorData.vendorPhone = document.getElementById('ve-vendor-phone').value;
+  applyVendorDisplay();
+  document.getElementById('vendorOverlay').classList.remove('open');
+};
+
+// ── SKU MANAGER ──
+window.openSkuMgr = function() {
+  if (!currentClient) return;
+  document.getElementById('sku-modal-banner').textContent = `Client: ${currentClient.name}`;
+  document.getElementById('new-sku').value = '';
+  document.getElementById('new-desc').value = '';
+  document.getElementById('new-unit').value = 'EACHES';
+  renderSkuList();
+  document.getElementById('skuOverlay').classList.add('open');
+};
+
+function renderSkuList() {
+  const list = document.getElementById('skuList');
+  if (!clientSkus.length) {
+    list.innerHTML = '<div class="sku-empty">No SKUs yet. Add your first SKU above.</div>';
+    return;
+  }
+  list.innerHTML = clientSkus.map((s, i) => `
+    <div class="sku-item" id="sku-row-${i}">
+      <input value="${escHtml(s.sku)}" onchange="updateSkuField(${i},'sku',this.value)" title="SKU"/>
+      <input value="${escHtml(s.desc)}" onchange="updateSkuField(${i},'desc',this.value)" title="Description"/>
+      <input value="${escHtml(s.unit)}" onchange="updateSkuField(${i},'unit',this.value)" title="Unit"/>
+      <button class="sku-del-btn" onclick="deleteSku(${i})" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+window.updateSkuField = async function(i, field, value) {
+  if (!currentClient || !clientSkus[i]) return;
+  clientSkus[i][field] = value;
+  showSkuSaving();
+  try {
+    const docId = clientSkus[i]._docId;
+    if (docId) {
+      await updateDoc(doc(db, `packingSkus_${currentClient.id}`, docId), { [field]: value });
+    }
+  } catch(e) { console.error(e); }
+  hideSkuSaving();
+  refreshAllDropdowns();
+  updateSkuPill();
+};
+
+window.deleteSku = async function(i) {
+  if (!currentClient) return;
+  const s = clientSkus[i];
+  if (!confirm(`Remove SKU "${s.sku}"?`)) return;
+  showSkuSaving();
+  try {
+    if (s._docId) await deleteDoc(doc(db, `packingSkus_${currentClient.id}`, s._docId));
+  } catch(e) {}
+  clientSkus.splice(i, 1);
+  hideSkuSaving();
+  refreshAllDropdowns();
+  renderSkuList();
+  updateSkuPill();
+};
+
+window.addSkuFromForm = async function() {
+  if (!currentClient) return;
+  const sku = document.getElementById('new-sku').value.trim();
+  const desc = document.getElementById('new-desc').value.trim();
+  const unit = document.getElementById('new-unit').value.trim() || 'EACHES';
+  if (!sku) { document.getElementById('new-sku').focus(); return; }
+  if (clientSkus.find(s => s.sku === sku)) { alert('That SKU already exists for this client.'); return; }
+
+  showSkuSaving();
+  try {
+    const newRef = doc(collection(db, `packingSkus_${currentClient.id}`));
+    await setDoc(newRef, { sku, desc, unit, createdAt: serverTimestamp() });
+    clientSkus.push({ _docId: newRef.id, sku, desc, unit });
+    clientSkus.sort((a,b) => (a.sku||'').localeCompare(b.sku||''));
+  } catch(e) { console.error(e); }
+
+  document.getElementById('new-sku').value = '';
+  document.getElementById('new-desc').value = '';
+  document.getElementById('new-unit').value = 'EACHES';
+  hideSkuSaving();
+  refreshAllDropdowns();
+  renderSkuList();
+  updateSkuPill();
+  const list = document.getElementById('skuList');
+  list.scrollTop = list.scrollHeight;
+};
+
+function showSkuSaving() { document.getElementById('sku-saving').style.display = 'block'; }
+function hideSkuSaving() { setTimeout(() => document.getElementById('sku-saving').style.display = 'none', 600); }
+
+// ── ITEM ROWS ──
+function buildOptions(sel) {
+  return '<option value="">-- Select SKU --</option>' +
+    clientSkus.map(s => `<option value="${escHtml(s.sku)}"${s.sku === sel ? ' selected' : ''}>${escHtml(s.sku)}</option>`).join('');
+}
+
+function refreshAllDropdowns() {
+  document.querySelectorAll('#items-body tr').forEach(tr => {
+    const sel = tr.querySelector('select'); if (!sel) return;
+    const cur = sel.value; sel.innerHTML = buildOptions(cur);
+  });
+}
+
+window.skuChanged = function(sel, rowId) {
+  const found = clientSkus.find(s => s.sku === sel.value);
+  const row = document.getElementById(rowId);
+  if (found) { row.querySelector('.r-desc').value = found.desc; row.querySelector('.r-unit').value = found.unit; }
+  else { row.querySelector('.r-desc').value = ''; row.querySelector('.r-unit').value = ''; }
+};
+
+let rowCount = 0;
+window.addRow = function(skuVal='', descVal='', unitVal='', oqty='', sqty='') {
+  rowCount++;
+  const id = 'row-' + rowCount;
+  const tr = document.createElement('tr');
+  tr.id = id;
+  tr.innerHTML =
+    `<td class="td-sku"><select onchange="skuChanged(this,'${id}')">${buildOptions(skuVal)}</select></td>` +
+    `<td class="td-desc"><input type="text" class="r-desc" value="${descVal}" placeholder="Description"/></td>` +
+    `<td class="td-unit"><input type="text" class="r-unit" value="${unitVal}" placeholder="Unit Type"/></td>` +
+    `<td class="td-qty"><input type="number" class="r-oqty" value="${oqty}" min="0" placeholder="0"/></td>` +
+    `<td class="td-ship"><input type="number" class="r-sqty" value="${sqty}" min="0" placeholder="0"/></td>` +
+    `<td class="td-del no-print"><button class="del-btn" onclick="document.getElementById('${id}').remove()" title="Remove">✕</button></td>`;
+  document.getElementById('items-body').appendChild(tr);
+  if (skuVal) { const f = clientSkus.find(s => s.sku === skuVal); if (f) { tr.querySelector('.r-desc').value = f.desc; tr.querySelector('.r-unit').value = f.unit; } }
+};
+
+window.removeRow = function() {
+  const b = document.getElementById('items-body'); if (b.lastElementChild) b.lastElementChild.remove();
+};
+
+window.clearSlip = function() {
+  if (!confirm('Clear all fields?')) return;
+  ['f-date','f-po','ship-name','ship-addr1','ship-addr2','ship-city','s-po','s-cases','s-pallets','s-odate','s-pdate'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('items-body').innerHTML = '';
+  rowCount = 0;
+  const today = new Date().toLocaleDateString('en-US');
+  document.getElementById('f-date').value = today;
+  document.getElementById('s-odate').value = today;
+  for (let i = 0; i < 8; i++) addRow();
+};
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CSV IMPORT ──
+let csvParsed = []; // { sku, desc } rows ready to preview
+
+window.onCsvFileSelected = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // reset UI
+  csvParsed = [];
+  document.getElementById('csv-file-name').textContent = file.name;
+  document.getElementById('csv-preview').style.display = 'none';
+  document.getElementById('csv-import-btn').style.display = 'none';
+  document.getElementById('csv-import-result').style.display = 'none';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const text = e.target.result;
+      csvParsed = parseCsvForSkus(text);
+      renderCsvPreview();
+    } catch(err) {
+      showCsvResult('error', `Could not parse file: ${err.message}`);
+    }
+  };
+  reader.readAsText(file);
+  // reset input so same file can be re-selected
+  event.target.value = '';
+};
+
+function parseCsvForSkus(text) {
+  // Split into lines, handle \r\n and \n
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) throw new Error('File appears empty.');
+
+  // Parse header row to find SKU and Name column indices
+  const headers = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+  const skuIdx = headers.indexOf('sku');
+  const nameIdx = headers.indexOf('name');
+
+  if (skuIdx === -1) throw new Error('No "SKU" column found in file.');
+  if (nameIdx === -1) throw new Error('No "Name" column found in file.');
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCsvLine(lines[i]);
+    const sku = (cols[skuIdx] || '').trim();
+    const desc = (cols[nameIdx] || '').trim();
+    if (sku) rows.push({ sku, desc });
+  }
+  if (!rows.length) throw new Error('No data rows found.');
+  return rows;
+}
+
+function parseCsvLine(line) {
+  // Handles quoted fields with commas inside
+  const result = [];
+  let cur = '';
+  let inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+      else inQuote = !inQuote;
+    } else if (ch === ',' && !inQuote) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function renderCsvPreview() {
+  const preview = document.getElementById('csv-preview');
+  const list = document.getElementById('csv-preview-list');
+  const counts = document.getElementById('csv-preview-counts');
+  const importBtn = document.getElementById('csv-import-btn');
+
+  if (!csvParsed.length) {
+    preview.style.display = 'none';
+    importBtn.style.display = 'none';
+    return;
+  }
+
+  const existingSkus = new Set(clientSkus.map(s => s.sku.toLowerCase()));
+  const newRows = csvParsed.filter(r => !existingSkus.has(r.sku.toLowerCase()));
+  const skipRows = csvParsed.filter(r => existingSkus.has(r.sku.toLowerCase()));
+
+  counts.textContent = `${newRows.length} new · ${skipRows.length} already exist (will skip)`;
+
+  list.innerHTML = [
+    ...newRows.map(r => `
+      <div class="csv-preview-row">
+        <span class="csv-preview-sku">${escHtml(r.sku)}</span>
+        <span class="csv-preview-desc">${escHtml(r.desc) || '—'}</span>
+      </div>`),
+    ...skipRows.map(r => `
+      <div class="csv-preview-row skip">
+        <span class="csv-preview-sku">${escHtml(r.sku)}</span>
+        <span class="csv-preview-desc">${escHtml(r.desc) || '—'}</span>
+      </div>`)
+  ].join('');
+
+  preview.style.display = 'block';
+  importBtn.style.display = newRows.length ? 'block' : 'none';
+
+  if (!newRows.length) {
+    showCsvResult('error', 'All SKUs in this file already exist for this client.');
+  }
+}
+
+window.importCsvSkus = async function() {
+  if (!currentClient || !csvParsed.length) return;
+
+  const existingSkus = new Set(clientSkus.map(s => s.sku.toLowerCase()));
+  const toAdd = csvParsed.filter(r => !existingSkus.has(r.sku.toLowerCase()));
+  if (!toAdd.length) return;
+
+  document.getElementById('csv-import-btn').disabled = true;
+  document.getElementById('csv-import-btn').textContent = '⏳ Saving…';
+  showSkuSaving();
+
+  let saved = 0;
+  let failed = 0;
+
+  for (const row of toAdd) {
+    try {
+      const newRef = doc(collection(db, `packingSkus_${currentClient.id}`));
+      await setDoc(newRef, {
+        sku: row.sku,
+        desc: row.desc,
+        unit: 'EACHES',
+        createdAt: serverTimestamp()
+      });
+      clientSkus.push({ _docId: newRef.id, sku: row.sku, desc: row.desc, unit: 'EACHES' });
+      saved++;
+    } catch(e) {
+      failed++;
+    }
+  }
+
+  clientSkus.sort((a,b) => (a.sku||'').localeCompare(b.sku||''));
+  hideSkuSaving();
+  refreshAllDropdowns();
+  renderSkuList();
+  updateSkuPill();
+
+  // Reset import UI
+  document.getElementById('csv-import-btn').disabled = false;
+  document.getElementById('csv-import-btn').style.display = 'none';
+  document.getElementById('csv-preview').style.display = 'none';
+  document.getElementById('csv-file-name').textContent = 'No file selected';
+  document.getElementById('csv-import-btn').textContent = '⬆ Import SKUs';
+  csvParsed = [];
+
+  if (failed) {
+    showCsvResult('error', `Imported ${saved} SKUs. ${failed} failed — check connection.`);
+  } else {
+    showCsvResult('ok', `✓ ${saved} SKU${saved !== 1 ? 's' : ''} imported and saved to Firebase.`);
+  }
+};
+
+function showCsvResult(type, msg) {
+  const el = document.getElementById('csv-import-result');
+  el.textContent = msg;
+  el.className = `csv-import-result ${type === 'ok' ? 'csv-result-ok' : 'csv-result-err'}`;
+  el.style.display = 'block';
+  if (type === 'ok') setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// overlay close on backdrop click
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+initClientSync();
+</script>
+</body>
+</html>
