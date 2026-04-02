@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IQ Bar — Lot Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c10;--surface:#0f1419;--card:#141b22;--border:#1e2a34;
+  --green:#3EBD84;--green-dim:#1D9E75;--green-dark:#0a3d2b;
+  --text:#e8f0eb;--text-muted:#6b8f7a;--text-dim:#3a5248;
+  --red:#e05c5c;--amber:#d4943a;--blue:#4a9eff;--purple:#a78bfa;
+  --radius:10px;--font:'Outfit',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 6px var(--green)}
+.header-title{font-size:15px;font-weight:600}
+.header-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
+.back-link{font-size:12px;color:var(--text-muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;transition:all .15s}
+.back-link:hover{color:var(--green);border-color:var(--green)}
+.btn{font-family:var(--font);font-size:13px;font-weight:500;padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-primary:hover{background:var(--green-dim)}
+.btn-ghost{background:transparent;color:var(--text-muted);border-color:var(--border)}
+.btn-ghost:hover{background:var(--card);color:var(--text)}
+.btn-sm{font-size:11px;padding:4px 10px;border-radius:6px}
+.btn-danger{background:transparent;color:var(--red);border-color:#3a1a1a;font-size:11px;padding:4px 10px;border-radius:6px}
+.btn-danger:hover{background:#1e0e0e}
+.btn-split{background:transparent;color:var(--blue);border-color:#1a3050;font-size:11px;padding:4px 10px;border-radius:6px}
+.btn-split:hover{background:#0a1828}
+.main{max-width:1060px;margin:0 auto;padding:24px 20px}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{font-family:var(--font);font-size:13px;font-weight:500;padding:10px 18px;background:transparent;border:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:color .15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab-section{display:none}
+.tab-section.active{display:block}
+.sbar{border-radius:8px;padding:10px 16px;font-size:12px;margin-bottom:16px;display:none}
+.s-ok{background:var(--green-dark);border:1px solid var(--green-dim);color:var(--green)}
+.s-warn{background:#2a1e0a;border:1px solid var(--amber);color:var(--amber)}
+.sum-strip{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.sum-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;flex:1;min-width:90px}
+.sum-val{font-size:22px;font-weight:700}
+.sum-lbl{font-size:10px;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+/* TOOLBAR */
+.toolbar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sw{position:relative;flex:1;min-width:180px}
+.sw input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px 7px 30px;font-family:var(--font);font-size:12px;color:var(--text);outline:none}
+.sw input:focus{border-color:var(--green)}
+.sw-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:12px;pointer-events:none}
+.tfilters{display:flex;gap:8px;flex-wrap:wrap}
+.tfilters select{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:var(--font);font-size:11px;color:var(--text);outline:none;cursor:pointer}
+.tfilters select:focus{border-color:var(--green)}
+/* JOB CARDS */
+.job-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+.job-card.bc-overdue{border-color:#6b1a1a;border-width:1.5px}
+.job-card.bc-urgent{border-color:#6b4c10;border-width:1.5px}
+.job-card.bc-kitting{border-color:#1D9E75}
+.job-card.bc-complete{border-color:var(--green-dim)}
+.jcard-hd{display:flex;align-items:center;gap:10px;padding:11px 15px;cursor:pointer;user-select:none}
+.jcard-hd:hover{background:#0d151d}
+.jchev{font-size:10px;color:var(--text-dim);transition:transform .2s;flex-shrink:0}
+.jchev.open{transform:rotate(90deg)}
+.jinfo{flex:1;min-width:0}
+.jsku{font-size:13px;font-weight:600;font-family:monospace;letter-spacing:.2px}
+.jmeta{font-size:11px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;align-items:center}
+/* DUE DATE BADGES */
+.due-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.due-overdue{background:#2a0a0a;color:var(--red);border:1px solid #6b1a1a}
+.due-today{background:#2a1e0a;color:#f5c518;border:1px solid #8b6010}
+.due-soon{background:#1a2a0a;color:#7dbb3a;border:1px solid #3a6010}
+.due-normal{background:#0a1828;color:var(--blue);border:1px solid #1a3050}
+.jright{display:flex;align-items:center;gap:7px;flex-shrink:0;flex-wrap:wrap}
+.pill{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.pill-pending{background:#1a2535;color:var(--text-dim);border:1px solid var(--border)}
+.pill-inprog{background:#251a05;color:var(--amber);border:1px solid #6b4c10}
+.pill-kitting{background:#0a1f15;color:var(--green);border:1px solid var(--green-dark)}
+.pill-complete{background:var(--green-dark);color:var(--green);border:1px solid var(--green-dim)}
+.pill-split{background:#0a1828;color:var(--blue);border:1px solid #1a3050}
+.jbody{display:none;border-top:1px solid var(--border)}
+.jbody.open{display:block}
+/* COMPONENT TABLE */
+.ctbl{width:100%;border-collapse:collapse;font-size:12px}
+.ctbl th{font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;text-align:left;background:var(--surface);border-bottom:1px solid var(--border)}
+.ctbl td{padding:6px 10px;border-bottom:1px solid #0d151d;vertical-align:middle}
+.ctbl tr:last-child td{border-bottom:none}
+.ctbl input[type="text"],.ctbl input[type="date"]{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;width:100%;transition:border-color .15s}
+.ctbl input:focus{border-color:var(--green)}
+.exp-warn{border-color:var(--amber)!important}
+.exp-alert{border-color:var(--red)!important}
+.lot-pill{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px;font-family:monospace}
+.exp-ok{color:var(--green);font-size:11px;font-weight:500}
+.exp-soon{color:var(--amber);font-size:11px;font-weight:500}
+.exp-bad{color:var(--red);font-size:11px;font-weight:500}
+/* SPLIT SECTION */
+.split-section{padding:12px 14px;border-top:1px solid var(--border);background:#0a1420}
+.split-title{font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.split-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+.split-field{display:flex;flex-direction:column;gap:4px}
+.split-field label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.split-field input,.split-field select{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-family:var(--font);font-size:12px;color:var(--text);outline:none}
+.split-field input:focus,.split-field select:focus{border-color:var(--blue)}
+/* VERIFY BAR */
+.vbar{display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--surface);border-top:1px solid var(--border);flex-wrap:wrap}
+.vlabel{font-size:10px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+.vchip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid transparent}
+.vchip-p{background:var(--surface);border-color:var(--border);color:var(--text-dim)}
+.vchip-k{background:#0a1f15;border-color:var(--green-dark);color:var(--green)}
+.vchip-i{background:#0a1828;border-color:#1e3a5c;color:var(--blue)}
+.vdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.vbtn{font-family:var(--font);font-size:11px;font-weight:600;padding:3px 11px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s;white-space:nowrap}
+.vbtn-k:hover{border-color:var(--green);color:var(--green)}
+.vbtn-i:hover{border-color:var(--blue);color:var(--blue)}
+/* UPLOAD / PREVIEW */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--green);background:#0a1f15}
+.upload-zone input{display:none}
+.preview-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.preview-head{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.preview-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.preview-tbl th{font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;background:var(--surface);border-bottom:1px solid var(--border);text-align:left}
+.preview-tbl td{padding:7px 12px;border-bottom:1px solid #0d151d}
+.preview-tbl tr:last-child td{border-bottom:none}
+.preview-tbl tr.skipped td{opacity:.4;text-decoration:line-through}
+/* MANUAL FORM */
+.add-form{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
+.add-form-title{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.ff input,.ff select{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;transition:border-color .15s}
+.ff input:focus,.ff select:focus{border-color:var(--green)}
+.ff select option{background:#1a2530}
+/* HISTORY */
+.hcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.hcard.hc-done{border-color:var(--green-dim)}
+.hcard-hd{display:flex;align-items:center;gap:10px;padding:11px 15px;cursor:pointer;user-select:none}
+.hcard-hd:hover{background:#0d151d}
+.hbody{display:none;border-top:1px solid var(--border)}
+.hbody.open{display:block}
+.htbl{width:100%;border-collapse:collapse;font-size:12px}
+.htbl th{font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;background:var(--surface);border-bottom:1px solid var(--border);text-align:left}
+.htbl td{padding:7px 12px;border-bottom:1px solid #0d151d}
+.htbl tr:last-child td{border-bottom:none}
+.htbl tr:hover td{background:#0d151d}
+/* ADMIN */
+.adm-gate{max-width:290px;margin:60px auto;text-align:center}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:24px}
+.sec-head h2{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px}
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:4px}
+.adm-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.adm-tbl th{font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:7px 12px;background:var(--surface);border-bottom:1px solid var(--border);text-align:left}
+.adm-tbl td{padding:5px 8px;border-bottom:1px solid #0d151d;vertical-align:middle}
+.adm-tbl tr:last-child td{border-bottom:none}
+.adm-tbl input{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;width:100%}
+.adm-tbl input:focus{border-color:var(--green)}
+/* PIN */
+.pin-ov{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;display:none;align-items:center;justify-content:center}
+.pin-ov.open{display:flex}
+.pin-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;width:290px;text-align:center}
+.pin-box h4{font-size:14px;font-weight:600;margin-bottom:3px}
+.pin-box p{font-size:11px;color:var(--text-muted);margin-bottom:14px}
+.pdots{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.pdot{width:11px;height:11px;border-radius:50%;background:var(--border);transition:background .12s}
+.pdot.filled{background:var(--green)}
+.ppad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pkey{font-family:var(--font);font-size:15px;font-weight:600;padding:11px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:background .12s}
+.pkey:hover{background:#1e2a34}
+.perr{color:var(--red);font-size:11px;margin-top:7px;min-height:15px}
+@media(max-width:680px){.form-row,.tfilters{flex-direction:column}.toolbar{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-dot"></div>
+    <div>
+      <div class="header-title">IQ Bar — Lot Tracker</div>
+      <div class="header-sub">FEFO compliance · Kit job queue · Dual verification</div>
+    </div>
+  </div>
+  <a href="index.html" class="back-link">← Home</a>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" id="tb-jobs"    onclick="switchTab('jobs')">Kit Jobs</button>
+    <button class="tab"        id="tb-history"  onclick="switchTab('history')">Audit History</button>
+    <button class="tab"        id="tb-admin"    onclick="switchTab('admin')" style="margin-left:auto;color:var(--amber)">⚙ Admin</button>
+  </div>
+
+  <!-- ══ JOBS ══ -->
+  <div id="tab-jobs" class="tab-section active">
+    <div id="sbar" class="sbar"></div>
+    <div class="sum-strip" id="sum-strip"></div>
+    <div class="toolbar">
+      <div class="sw"><span class="sw-icon">🔍</span><input type="text" id="q-search" placeholder="Search SKU, date, lot..." oninput="renderJobs()"/></div>
+      <div class="tfilters">
+        <select id="q-status" onchange="renderJobs()">
+          <option value="">All statuses</option>
+          <option value="pending">Pending lots</option>
+          <option value="inprog">Lots in progress</option>
+          <option value="kitting">Kitting signed off</option>
+        </select>
+        <select id="q-sku" onchange="renderJobs()"><option value="">All kit SKUs</option></select>
+        <select id="q-sort" onchange="renderJobs()">
+          <option value="needby">Need by ↑ (urgent first)</option>
+          <option value="date_asc">Date requested ↑</option>
+          <option value="date_desc">Date requested ↓</option>
+          <option value="sku">SKU A→Z</option>
+          <option value="qty_desc">Qty ↓</option>
+          <option value="qty_asc">Qty ↑</option>
+          <option value="posted">Recently posted</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="clearQF()">Clear</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;min-height:16px" id="q-bar"></div>
+    <div id="jobs-list"></div>
+  </div>
+
+  <!-- ══ HISTORY ══ -->
+  <div id="tab-history" class="tab-section">
+    <div class="sum-strip" id="h-sum"></div>
+    <div class="toolbar">
+      <div class="sw"><span class="sw-icon">🔍</span><input type="text" id="h-search" placeholder="Search SKU, lot #, date..." oninput="renderHistory()"/></div>
+      <div class="tfilters">
+        <select id="h-sku" onchange="renderHistory()"><option value="">All SKUs</option></select>
+        <select id="h-verify" onchange="renderHistory()">
+          <option value="">All statuses</option>
+          <option value="complete">Fully verified</option>
+          <option value="kitting">Kitting only</option>
+        </select>
+        <select id="h-sort" onchange="renderHistory()">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="clearHF()">Clear</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;min-height:16px" id="h-bar"></div>
+    <div id="hist-list"></div>
+  </div>
+
+  <!-- ══ ADMIN ══ -->
+  <div id="tab-admin" class="tab-section">
+    <div id="adm-gate">
+      <div class="adm-gate">
+        <div style="font-size:26px;margin-bottom:10px">⚙</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Admin Access</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Enter PIN to post jobs and manage settings</div>
+        <div class="pdots" id="adm-dots" style="justify-content:center;margin-bottom:12px">
+          <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+        </div>
+        <div class="ppad" style="max-width:200px;margin:0 auto">
+          <button class="pkey" onclick="aKey('1')">1</button><button class="pkey" onclick="aKey('2')">2</button><button class="pkey" onclick="aKey('3')">3</button>
+          <button class="pkey" onclick="aKey('4')">4</button><button class="pkey" onclick="aKey('5')">5</button><button class="pkey" onclick="aKey('6')">6</button>
+          <button class="pkey" onclick="aKey('7')">7</button><button class="pkey" onclick="aKey('8')">8</button><button class="pkey" onclick="aKey('9')">9</button>
+          <button class="pkey" onclick="aBk()" style="font-size:12px">⌫</button><button class="pkey" onclick="aKey('0')">0</button>
+          <button class="pkey" onclick="aCancel()" style="font-size:10px;color:var(--text-muted)">Cancel</button>
+        </div>
+        <div style="color:var(--red);font-size:11px;margin-top:8px;min-height:15px" id="adm-err"></div>
+      </div>
+    </div>
+
+    <div id="adm-panel" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:14px;font-weight:600">Admin Panel</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="admSave()">💾 Save Settings</button>
+          <button class="btn btn-danger btn-sm" onclick="aLock()">Lock</button>
+        </div>
+      </div>
+
+      <!-- POST JOBS -->
+      <div class="sec-head" style="margin-top:16px"><h2>Post Kit Jobs</h2></div>
+
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('csv-in').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <input type="file" id="csv-in" accept=".csv" onchange="handleCSV(this.files[0])"/>
+        <div style="font-size:26px;margin-bottom:8px">📄</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-muted)">Drop IQ Kitting Master CSV here, or click to browse</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Kit Requested (IQ) · Quantity · Date Requested · Need Done By · Completed rows skipped automatically</div>
+      </div>
+
+      <div id="preview-wrap" style="display:none">
+        <div class="preview-wrap">
+          <div class="preview-head">
+            <div>
+              <div style="font-size:13px;font-weight:600" id="prev-title">Preview</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px" id="prev-sub"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="clearPrev()">Clear</button>
+              <button class="btn btn-primary btn-sm" onclick="postJobs()">Post to Kitting Lead →</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="preview-tbl">
+              <thead><tr><th>Kit SKU</th><th>Qty</th><th>Date Requested</th><th>Need Done By</th><th></th></tr></thead>
+              <tbody id="prev-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="add-form">
+        <div class="add-form-title">Add single job manually</div>
+        <div class="form-row">
+          <div class="ff" style="flex:2;min-width:180px">
+            <label>Kit SKU</label>
+            <select id="add-sku"><option value="">— Select —</option></select>
+          </div>
+          <div class="ff" style="width:90px"><label>Quantity</label><input type="number" id="add-qty" placeholder="0" min="1"/></div>
+          <div class="ff" style="width:138px"><label>Date Requested</label><input type="date" id="add-date"/></div>
+          <div class="ff" style="width:138px"><label>Need Done By</label><input type="date" id="add-needby"/></div>
+          <div class="ff" style="justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="addManual()" style="height:34px">+ Add</button></div>
+        </div>
+      </div>
+
+      <!-- KIT BOMs -->
+      <div class="sec-head"><h2>Kit BOMs</h2><button class="btn btn-ghost btn-sm" onclick="admAddKit()">+ Add Kit</button></div>
+      <div class="tbl-wrap"><table class="adm-tbl">
+        <thead><tr><th style="width:200px">Finished Kit SKU</th><th>Bulk Component SKUs (comma separated)</th><th style="width:36px"></th></tr></thead>
+        <tbody id="adm-kits"></tbody>
+      </table></div>
+
+      <!-- COMPONENT SKUs -->
+      <div class="sec-head"><h2>Component SKUs</h2><button class="btn btn-ghost btn-sm" onclick="admAddSku()">+ Add</button></div>
+      <div class="tbl-wrap"><table class="adm-tbl">
+        <thead><tr><th style="width:180px">SKU</th><th>Description</th><th style="width:36px"></th></tr></thead>
+        <tbody id="adm-skus"></tbody>
+      </table></div>
+
+      <!-- PINS -->
+      <div class="sec-head"><h2>Verification PINs</h2></div>
+      <div class="tbl-wrap" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--text-muted);min-width:140px">Kitting Lead PIN</span>
+          <input type="password" id="pin-k" maxlength="6" style="width:100px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:var(--font);font-size:13px;color:var(--text);outline:none"/>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--text-muted);min-width:140px">Inventory Lead PIN</span>
+          <input type="password" id="pin-i" maxlength="6" style="width:100px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:var(--font);font-size:13px;color:var(--text);outline:none"/>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div class="pin-ov" id="pin-ov">
+  <div class="pin-box">
+    <h4 id="pin-title">Sign Off</h4>
+    <p id="pin-sub">Enter your PIN</p>
+    <div class="pdots" id="pin-dots"><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div></div>
+    <div class="ppad">
+      <button class="pkey" onclick="pKey('1')">1</button><button class="pkey" onclick="pKey('2')">2</button><button class="pkey" onclick="pKey('3')">3</button>
+      <button class="pkey" onclick="pKey('4')">4</button><button class="pkey" onclick="pKey('5')">5</button><button class="pkey" onclick="pKey('6')">6</button>
+      <button class="pkey" onclick="pKey('7')">7</button><button class="pkey" onclick="pKey('8')">8</button><button class="pkey" onclick="pKey('9')">9</button>
+      <button class="pkey" onclick="pCancel()" style="font-size:10px;color:var(--text-muted)">Cancel</button>
+      <button class="pkey" onclick="pKey('0')">0</button><button class="pkey" onclick="pBk()">⌫</button>
+    </div>
+    <div class="perr" id="pin-err"></div>
+  </div>
+</div>
+
+<script>
+// ═══ DATA ════════════════════════════════════════════════════════════
+const DEFAULT_SKUS=[
+  {sku:"BULK-07-MC",desc:"Matcha Chai — Bulk Bars"},{sku:"BULK-06-WB",desc:"Wild Blueberry — Bulk Bars"},
+  {sku:"BULK-091-CMC",desc:"Choc Mint Chip — Bulk Bars"},{sku:"BULK-09-TCC",desc:"Toasted Coconut Chip — Bulk Bars"},
+  {sku:"BULK-03-PBC",desc:"Peanut Butter Chip — Bulk Bars"},{sku:"BULK-05-LB",desc:"Lemon Blueberry — Bulk Bars"},
+  {sku:"BULK-02-CSS",desc:"Chocolate Sea Salt — Bulk Bars"},{sku:"BULK-08-BN",desc:"Banana Nut — Bulk Bars"},
+  {sku:"BULK-04-ABC",desc:"Almond Butter Chip — Bulk Bars"},
+  {sku:"JOE-BULK-01-BLK",desc:"IQJOE Original Black — Bulk Sticks"},{sku:"JOE-BULK-02-CM",desc:"IQJOE Caffe Mocha — Bulk Sticks"},
+  {sku:"JOE-BULK-03-TH",desc:"IQJOE Toasted Hazelnut — Bulk Sticks"},{sku:"JOE-BULK-04-VS",desc:"IQJOE Vanilla Spice — Bulk Sticks"},
+  {sku:"JOE-BULK-05-PS",desc:"IQJOE Pumpkin Spice — Bulk Sticks"},{sku:"JOE-BULK-06-PM",desc:"IQJOE Peppermint Mocha — Bulk Sticks"},
+  {sku:"MIX-BULK-01-BO",desc:"IQMIX Blood Orange — Bulk Sticks"},{sku:"MIX-BULK-02-BP",desc:"IQMIX Blueberry Pomegranate — Bulk Sticks"},
+  {sku:"MIX-BULK-03-LL",desc:"IQMIX Lemon Lime — Bulk Sticks"},{sku:"MIX-BULK-04-PM",desc:"IQMIX Peach Mango — Bulk Sticks"},
+  {sku:"MIX-BULK-05-PC",desc:"IQMIX Pina Colada — Bulk Sticks"},{sku:"MIX-BULK-06-PF",desc:"IQMIX Passion Fruit — Bulk Sticks"},
+  {sku:"MIX-BULK-07-RL",desc:"IQMIX Raspberry Lemonade — Bulk Sticks"},{sku:"MIX-BULK-08-ITL",desc:"IQMIX Iced Tea Lemonade — Bulk Sticks"},
+  {sku:"MIX-BULK-09-YM",desc:"IQMIX Yuzu Mango — Bulk Sticks"},
+];
+const DEFAULT_KITS=[
+  {sku:"IQ-7BS-UPC",comps:["BULK-07-MC","BULK-091-CMC","BULK-09-TCC","BULK-03-PBC","BULK-05-LB","BULK-02-CSS","BULK-08-BN"]},
+  {sku:"IQ-802-ULT-v2",comps:["BULK-05-LB","BULK-02-CSS","BULK-04-ABC","BULK-03-PBC","BULK-08-BN","BULK-091-CMC","BULK-09-TCC","MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP"]},
+  {sku:"IQ-DSPLY-72CLV",comps:["BULK-05-LB","BULK-02-CSS","BULK-04-ABC","BULK-03-PBC","BULK-08-BN","BULK-091-CMC","BULK-09-TCC"]},
+  {sku:"IQ-SHPR-96CLV",comps:["BULK-05-LB","BULK-02-CSS","BULK-04-ABC","BULK-03-PBC","BULK-08-BN","BULK-091-CMC","BULK-09-TCC"]},
+  {sku:"MIX-8CT-9205-SMPLR",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF","MIX-BULK-07-RL","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"MIX-8CT-905-SMPLR",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF","MIX-BULK-07-RL","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"MIX-8CT-908-SMPLRBOX",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF","MIX-BULK-07-RL","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"PKG-ENV-MIX-9205-8SMPLR",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF","MIX-BULK-07-RL","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"MIX-4CT-909-SMPLR",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP"]},
+  {sku:"MIX-20CT-9202-VAC",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF","MIX-BULK-07-RL","MIX-BULK-09-YM","MIX-BULK-04-PM","MIX-BULK-08-ITL"]},
+  {sku:"MIX-20CT-901-VAR",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF"]},
+  {sku:"MIX-40CT-903-VAR",comps:["MIX-BULK-03-LL","MIX-BULK-01-BO","MIX-BULK-05-PC","MIX-BULK-02-BP","MIX-BULK-06-PF","MIX-BULK-07-RL","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"MIX-20CT-902-TROP",comps:["MIX-BULK-05-PC","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"MIX-40CT-904-TROP",comps:["MIX-BULK-05-PC","MIX-BULK-09-YM","MIX-BULK-04-PM"]},
+  {sku:"MIX-20CT-03-LL",comps:["MIX-BULK-03-LL"]},{sku:"MIX-40CT-03-LL",comps:["MIX-BULK-03-LL"]},
+  {sku:"MIX-20CT-08-ITL",comps:["MIX-BULK-08-ITL"]},{sku:"MIX-20CT-01-BO",comps:["MIX-BULK-01-BO"]},
+  {sku:"MIX-40CT-01-BO",comps:["MIX-BULK-01-BO"]},{sku:"MIX-40CT-05-PC",comps:["MIX-BULK-05-PC"]},
+  {sku:"MIX-40CT-06-PF",comps:["MIX-BULK-06-PF"]},{sku:"MIX-20CT-04-PM",comps:["MIX-BULK-04-PM"]},
+  {sku:"MIX-40CT-04-PM",comps:["MIX-BULK-04-PM"]},{sku:"MIX-20CT-02-BP",comps:["MIX-BULK-02-BP"]},
+  {sku:"MIX-40CT-02-BP",comps:["MIX-BULK-02-BP"]},{sku:"MIX-20CT-07-RL",comps:["MIX-BULK-07-RL"]},
+  {sku:"MIX-40CT-07-RL",comps:["MIX-BULK-07-RL"]},{sku:"MIX-20CT-09-YM",comps:["MIX-BULK-09-YM"]},
+  {sku:"JOE-40CT-01-BLK",comps:["JOE-BULK-01-BLK"]},{sku:"JOE-16CT-901-VAR",comps:["JOE-BULK-01-BLK","JOE-BULK-02-CM","JOE-BULK-03-TH","JOE-BULK-04-VS"]},
+  {sku:"JOE-40CT-02-CM",comps:["JOE-BULK-02-CM"]},{sku:"JOE-40CT-03-TH",comps:["JOE-BULK-03-TH"]},
+  {sku:"JOE-40CT-902-VAR",comps:["JOE-BULK-01-BLK","JOE-BULK-02-CM","JOE-BULK-03-TH","JOE-BULK-04-VS"]},
+];
+
+const ls=k=>{ try{const s=localStorage.getItem(k);return s?JSON.parse(s):null;}catch(e){return null;} };
+const lsSet=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const getSkus=()=>ls('lt_skus')||DEFAULT_SKUS;
+const getKits=()=>ls('lt_kits')||DEFAULT_KITS;
+const getVPins=()=>ls('lt_vpins')||{kitting:'1111',inventory:'2222'};
+const skuDesc=sku=>{ const f=getSkus().find(s=>s.sku===sku); return f?f.desc:sku; };
+const kitComps=sku=>{ const f=getKits().find(k=>k.sku===sku); return f?f.comps:[]; };
+
+// ═══ FIREBASE ════════════════════════════════════════════════════════
+const FB='https://firestore.googleapis.com/v1/projects/atomix-tools/databases/(default)/documents/iqbar_lot_jobs';
+const AK='AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA';
+
+function toF(o){const f={};for(const[k,v]of Object.entries(o)){if(v==null)continue;if(typeof v==='string')f[k]={stringValue:v};else if(typeof v==='number')f[k]={integerValue:v};else if(typeof v==='boolean')f[k]={booleanValue:v};else f[k]={stringValue:JSON.stringify(v)};}return f;}
+function fromF(fields){const o={};for(const[k,v]of Object.entries(fields))o[k]=v.stringValue??v.integerValue??v.booleanValue??'';['components','verifyKitting','verifyInventory','splitFrom'].forEach(key=>{if(o[key]&&typeof o[key]==='string'&&(o[key][0]==='['||o[key][0]==='{')){try{o[key]=JSON.parse(o[key]);}catch(e){}}});return o;}
+
+async function fbCreate(d){try{const r=await fetch(`${FB}?key=${AK}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toF(d)})});if(!r.ok)return null;const j=await r.json();return j.name?j.name.split('/').pop():null;}catch(e){return null;}}
+async function fbPatch(id,d){try{const url=`${FB}/${id}?key=${AK}&${Object.keys(d).map(k=>`updateMask.fieldPaths=${k}`).join('&')}`;await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toF(d)})});}catch(e){}}
+async function fbDel(id){try{await fetch(`${FB}/${id}?key=${AK}`,{method:'DELETE'});}catch(e){}}
+async function fbAll(){try{const r=await fetch(`${FB}?key=${AK}&pageSize=500`);if(!r.ok)return null;const d=await r.json();if(!d.documents)return[];return d.documents.map(doc=>({...fromF(doc.fields),_id:doc.name.split('/').pop(),_ts:doc.createTime})).sort((a,b)=>b._ts>a._ts?1:-1);}catch(e){return null;}}
+
+// ═══ JOBS STORE ═══════════════════════════════════════════════════════
+let JOBS=[];
+
+function jobSt(j){
+  if(j.verifyKitting&&j.verifyInventory)return'complete';
+  if(j.verifyKitting)return'kitting';
+  if((j.components||[]).some(c=>c.lot))return'inprog';
+  return'pending';
+}
+
+function saveLoc(){lsSet('lt_jobs',JOBS);}
+
+async function loadJobs(){
+  JOBS=ls('lt_jobs')||[];
+  renderJobs();renderSum();
+  const fb=await fbAll();
+  if(fb&&fb.length){
+    const byId={};
+    JOBS.forEach(j=>{if(j._id)byId[j._id]=j;});
+    fb.forEach(j=>{byId[j._id]=j;});
+    JOBS=Object.values(byId).sort((a,b)=>(b.postedAt||'')>(a.postedAt||'')?1:-1);
+    saveLoc();renderJobs();renderSum();
+  }
+}
+
+// ═══ DUE DATE HELPERS ════════════════════════════════════════════════
+function daysUntil(str){
+  if(!str)return null;
+  return Math.ceil((new Date(str)-new Date())/86400000);
+}
+function dueBadge(needBy){
+  if(!needBy)return'';
+  const d=daysUntil(needBy);
+  if(d===null)return'';
+  if(d<0)  return`<span class="due-badge due-overdue">🔴 OVERDUE ${Math.abs(d)}d</span>`;
+  if(d===0)return`<span class="due-badge due-today">🟡 DUE TODAY</span>`;
+  if(d<=3) return`<span class="due-badge due-soon">🟢 Due in ${d}d — ${needBy}</span>`;
+  return`<span class="due-badge due-normal">📅 Due ${needBy}</span>`;
+}
+function cardBorderClass(j){
+  const st=jobSt(j);
+  if(st==='complete')return'bc-complete';
+  if(st==='kitting')return'bc-kitting';
+  const d=daysUntil(j.needBy);
+  if(d!==null&&d<0)return'bc-overdue';
+  if(d!==null&&d<=3)return'bc-urgent';
+  return'';
+}
+
+// ═══ EXP HELPERS ══════════════════════════════════════════════════════
+function expInfo(s){
+  if(!s)return{cls:'',txt:'—'};
+  const d=(new Date(s)-new Date())/86400000;
+  if(d<0)return{cls:'exp-bad',txt:'Expired'};
+  if(d<60)return{cls:'exp-soon',txt:s};
+  return{cls:'exp-ok',txt:s};
+}
+
+// ═══ RENDER JOBS ══════════════════════════════════════════════════════
+function renderSum(){
+  const active=JOBS.filter(j=>jobSt(j)!=='complete');
+  const pending=active.filter(j=>jobSt(j)==='pending');
+  const overdue=active.filter(j=>{const d=daysUntil(j.needBy);return d!==null&&d<0;});
+  const urgent=active.filter(j=>{const d=daysUntil(j.needBy);return d!==null&&d>=0&&d<=3;});
+  document.getElementById('sum-strip').innerHTML=`
+    <div class="sum-card"><div class="sum-val" style="color:var(--green)">${active.length}</div><div class="sum-lbl">Active Jobs</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--text-muted)">${pending.length}</div><div class="sum-lbl">Pending Lots</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--amber)">${urgent.length}</div><div class="sum-lbl">Due Soon</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--red)">${overdue.length}</div><div class="sum-lbl">Overdue</div></div>`;
+}
+
+function populateSkuFilter(){
+  const sel=document.getElementById('q-sku');if(!sel)return;
+  const cur=sel.value;
+  const skus=[...new Set(JOBS.filter(j=>jobSt(j)!=='complete').map(j=>j.kitSku).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">All kit SKUs</option>'+skus.map(s=>`<option value="${s}"${s===cur?' selected':''}>${s}</option>`).join('');
+}
+
+function clearQF(){
+  document.getElementById('q-search').value='';
+  document.getElementById('q-status').value='';
+  document.getElementById('q-sku').value='';
+  document.getElementById('q-sort').value='needby';
+  renderJobs();
+}
+
+function renderJobs(){
+  const q=(document.getElementById('q-search')?.value||'').toLowerCase();
+  const fSt=document.getElementById('q-status')?.value||'';
+  const fSku=document.getElementById('q-sku')?.value||'';
+  const sort=document.getElementById('q-sort')?.value||'needby';
+  const el=document.getElementById('jobs-list');
+
+  populateSkuFilter();
+
+  let list=JOBS.filter(j=>jobSt(j)!=='complete');
+  if(fSt)list=list.filter(j=>jobSt(j)===fSt);
+  if(fSku)list=list.filter(j=>j.kitSku===fSku);
+  if(q)list=list.filter(j=>[j.kitSku,j.dateRequested,j.needBy,j.qty].join(' ').toLowerCase().includes(q));
+
+  list=[...list].sort((a,b)=>{
+    const da=daysUntil(a.needBy),db=daysUntil(b.needBy);
+    switch(sort){
+      case'needby':
+        if(da===null&&db===null)return 0;
+        if(da===null)return 1;if(db===null)return-1;
+        return da-db;
+      case'date_asc':return(a.dateRequested||'')>(b.dateRequested||'')?1:-1;
+      case'date_desc':return(a.dateRequested||'')<(b.dateRequested||'')?1:-1;
+      case'sku':return(a.kitSku||'').localeCompare(b.kitSku||'');
+      case'qty_desc':return parseInt(b.qty||0)-parseInt(a.qty||0);
+      case'qty_asc':return parseInt(a.qty||0)-parseInt(b.qty||0);
+      case'posted':return(b.postedAt||'')>(a.postedAt||'')?1:-1;
+      default:return 0;
+    }
+  });
+
+  const shown=list.length,total=JOBS.filter(j=>jobSt(j)!=='complete').length;
+  document.getElementById('q-bar').textContent=shown!==total?`${shown} of ${total} jobs shown`:'';
+
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;font-size:13px;color:var(--text-dim)">No active jobs.</div>';return;}
+
+  el.innerHTML=list.map(j=>{
+    const idx=JOBS.indexOf(j);
+    const st=jobSt(j);
+    const kv=j.verifyKitting,iv=j.verifyInventory;
+    const bc=cardBorderClass(j);
+    const pillMap={pending:'pill-pending',inprog:'pill-inprog',kitting:'pill-kitting',complete:'pill-complete'};
+    const pillLbl={pending:'Pending',inprog:'Lots Added',kitting:'Kitting ✓',complete:'Verified ✓'};
+    const isSplit=j.splitFrom?true:false;
+
+    const kChip=kv?`<span class="vchip vchip-k"><span class="vdot"></span>Kitting · ${kv.at}</span>`:`<span class="vchip vchip-p"><span class="vdot"></span>Kitting</span>`;
+    const iChip=iv?`<span class="vchip vchip-i"><span class="vdot"></span>Inventory · ${iv.at}</span>`:`<span class="vchip vchip-p"><span class="vdot"></span>Inventory</span>`;
+    const kBtn=kv?'':`<button class="vbtn vbtn-k" onclick="event.stopPropagation();startV(${idx},'kitting')">Sign off — Kitting</button>`;
+    const iBtn=(iv||!kv)?'':`<button class="vbtn vbtn-i" onclick="event.stopPropagation();startV(${idx},'inventory')">Sign off — Inventory</button>`;
+
+    const locked=st==='complete';
+    const compRows=(j.components||[]).map((c,ci)=>{
+      const ei=expInfo(c.exp);
+      if(locked)return`<tr><td style="font-family:monospace;font-size:11px">${c.sku}</td><td style="color:var(--text-muted);font-size:11px">${c.desc}</td><td><span class="lot-pill">${c.lot||'—'}</span></td><td class="${ei.cls}">${ei.txt}</td><td style="color:var(--text-dim);font-size:11px">${c.notes||''}</td></tr>`;
+      const expCls=c.exp?(expInfo(c.exp).cls==='exp-bad'?'exp-alert':expInfo(c.exp).cls==='exp-soon'?'exp-warn':''):'';
+      return`<tr>
+        <td style="font-family:monospace;font-size:11px">${c.sku}</td>
+        <td style="color:var(--text-muted);font-size:11px">${c.desc}</td>
+        <td><input type="text" value="${c.lot||''}" placeholder="LOT-XXX" onchange="updComp(${idx},${ci},'lot',this.value)" style="width:120px"/></td>
+        <td><input type="date" value="${c.exp||''}" onchange="updComp(${idx},${ci},'exp',this.value)" class="${expCls}" style="width:130px"/></td>
+        <td><input type="text" value="${c.notes||''}" placeholder="Optional" onchange="updComp(${idx},${ci},'notes',this.value)" style="width:130px"/></td>
+      </tr>`;
+    }).join('');
+
+    const due=dueBadge(j.needBy);
+    const d=daysUntil(j.needBy);
+    const metaDue=j.needBy&&!due?`<span>Due: ${j.needBy}</span>`:'';
+
+    return`<div class="job-card ${bc}" id="jc-${idx}">
+      <div class="jcard-hd" onclick="toggleJ(${idx})">
+        <span class="jchev" id="jch-${idx}">▶</span>
+        <div class="jinfo">
+          <div class="jsku">${j.kitSku}${isSplit?` <span class="pill pill-split">Split</span>`:''}</div>
+          <div class="jmeta">
+            <span>Qty: <b>${j.qty||'—'}</b></span>
+            ${j.dateRequested?`<span>Requested: ${j.dateRequested}</span>`:''}
+            ${due||metaDue}
+            <span>${(j.components||[]).length} components</span>
+          </div>
+        </div>
+        <div class="jright">
+          <span class="pill ${pillMap[st]}">${pillLbl[st]}</span>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delJob(${idx})" title="Delete">✕</button>
+        </div>
+      </div>
+      <div class="jbody" id="jb-${idx}">
+        <table class="ctbl">
+          <thead><tr><th style="width:130px">Component SKU</th><th>Description</th><th style="width:130px">Lot #</th><th style="width:130px">Exp Date</th><th>Notes</th></tr></thead>
+          <tbody>${compRows}</tbody>
+        </table>
+        ${!locked?`<div style="padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="saveLots(${idx})">💾 Save Lots</button>
+          <button class="btn btn-split btn-sm" onclick="openSplit(${idx})">✂ Split Job</button>
+        </div>`:''}
+        <div class="vbar">
+          <span class="vlabel">Verified:</span>${kChip}${iChip}${kBtn}${iBtn}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleJ(idx){const b=document.getElementById('jb-'+idx),c=document.getElementById('jch-'+idx);if(!b)return;const o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);}
+function updComp(ji,ci,field,val){if(JOBS[ji]?.components[ci])JOBS[ji].components[ci][field]=val;}
+
+async function saveLots(idx){
+  const j=JOBS[idx];if(!j)return;
+  saveLoc();
+  if(j._id)await fbPatch(j._id,{components:j.components});
+  renderJobs();renderSum();
+  showSt('✓ Lots saved','ok');
+}
+
+async function delJob(idx){
+  if(!confirm('Delete this job?'))return;
+  const j=JOBS[idx];
+  if(j?._id)await fbDel(j._id);
+  JOBS.splice(idx,1);saveLoc();renderJobs();renderSum();
+}
+
+// ═══ SPLIT JOB ════════════════════════════════════════════════════════
+function openSplit(idx){
+  const j=JOBS[idx];if(!j)return;
+  const existing=document.getElementById('split-'+idx);
+  if(existing){existing.remove();return;}
+
+  const body=document.getElementById('jb-'+idx);
+  const div=document.createElement('div');
+  div.id='split-'+idx;
+  div.className='split-section';
+  div.innerHTML=`
+    <div class="split-title">✂ Split Job — divide this job into two portions</div>
+    <div class="split-row">
+      <div class="split-field"><label>Qty for this job</label><input type="number" id="sp-qty1-${idx}" placeholder="e.g. 500" min="1" style="width:120px"/></div>
+      <div class="split-field"><label>Qty for new split job</label><input type="number" id="sp-qty2-${idx}" placeholder="e.g. 500" min="1" style="width:120px"/></div>
+      <div class="split-field"><label>Need by (split job)</label><input type="date" id="sp-needby-${idx}" value="${j.needBy||''}" style="width:150px"/></div>
+      <div class="split-field" style="justify-content:flex-end">
+        <button class="btn btn-split btn-sm" onclick="doSplit(${idx})" style="height:32px">Create Split</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('split-${idx}').remove()" style="height:32px;margin-top:4px">Cancel</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim)">Original job will keep its components/lots. The new split job will start fresh with the same components, no lots assigned.</div>`;
+  body.insertBefore(div,body.querySelector('.vbar'));
+}
+
+async function doSplit(idx){
+  const j=JOBS[idx];if(!j)return;
+  const qty1=parseInt(document.getElementById('sp-qty1-'+idx)?.value)||0;
+  const qty2=parseInt(document.getElementById('sp-qty2-'+idx)?.value)||0;
+  const needBy=document.getElementById('sp-needby-'+idx)?.value||'';
+  if(!qty1||!qty2){showSt('Enter quantities for both portions','warn');return;}
+  if(qty1+qty2!==parseInt(j.qty||0)){
+    if(!confirm(`Quantities (${qty1}+${qty2}=${qty1+qty2}) don't add up to original (${j.qty}). Continue anyway?`))return;
+  }
+  // Update original qty
+  j.qty=String(qty1);
+  saveLoc();
+  if(j._id)await fbPatch(j._id,{qty:j.qty});
+  // Create new split job
+  const newComps=kitComps(j.kitSku).map(s=>({sku:s,desc:skuDesc(s),lot:'',exp:'',notes:''}));
+  const newJob={
+    kitSku:j.kitSku,qty:String(qty2),dateRequested:j.dateRequested,needBy,
+    components:newComps,postedAt:new Date().toISOString(),
+    splitFrom:j._id||j.kitSku,verifyKitting:null,verifyInventory:null
+  };
+  const id=await fbCreate(newJob);
+  if(id)newJob._id=id;
+  JOBS.unshift(newJob);
+  saveLoc();
+  document.getElementById('split-'+idx)?.remove();
+  renderJobs();renderSum();
+  showSt(`✓ Job split — ${qty1} + ${qty2} units`,'ok');
+}
+
+// ═══ VERIFICATION ══════════════════════════════════════════════════════
+let _vCtx=null,_vBuf='';
+function startV(idx,role){
+  _vCtx={idx,role};_vBuf='';
+  updPDots();
+  document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-title').textContent=role==='kitting'?'Kitting Lead — Sign Off':'Inventory Lead — Sign Off';
+  document.getElementById('pin-sub').textContent='Enter your PIN to verify';
+  document.getElementById('pin-ov').classList.add('open');
+}
+function pKey(d){if(_vBuf.length>=4)return;_vBuf+=d;updPDots();if(_vBuf.length===4)setTimeout(checkVPin,120);}
+function pBk(){_vBuf=_vBuf.slice(0,-1);updPDots();}
+function pCancel(){document.getElementById('pin-ov').classList.remove('open');_vCtx=null;_vBuf='';}
+function updPDots(){document.querySelectorAll('#pin-dots .pdot').forEach((d,i)=>d.classList.toggle('filled',i<_vBuf.length));}
+
+async function checkVPin(){
+  const pins=getVPins();
+  const exp=_vCtx.role==='kitting'?pins.kitting:pins.inventory;
+  if(_vBuf!==exp){document.getElementById('pin-err').textContent='Incorrect PIN — try again';_vBuf='';updPDots();return;}
+  document.getElementById('pin-ov').classList.remove('open');
+  const j=JOBS[_vCtx.idx];if(!j)return;
+  const stamp={name:_vCtx.role==='kitting'?'Kitting Lead':'Inventory Lead',at:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})};
+  const field=_vCtx.role==='kitting'?'verifyKitting':'verifyInventory';
+  j[field]=stamp;
+  if(j.verifyKitting&&j.verifyInventory){
+    j.completedAt=new Date().toISOString();
+    const hist=ls('lt_history')||[];hist.unshift({...j});lsSet('lt_history',hist);
+    if(j._id)await fbPatch(j._id,{[field]:stamp,completedAt:j.completedAt});
+    JOBS.splice(_vCtx.idx,1);saveLoc();
+    showSt('✓ Fully verified — moved to Audit History','ok');
+  } else {
+    if(j._id)await fbPatch(j._id,{[field]:stamp});
+    saveLoc();
+    showSt('✓ Kitting sign-off recorded — awaiting Inventory Lead','ok');
+  }
+  renderJobs();renderSum();
+}
+
+// ═══ CSV ══════════════════════════════════════════════════════════════
+let _csvRows=[];
+function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handleCSV(f);}
+function handleCSV(file){if(!file)return;const r=new FileReader();r.onload=e=>parseCSV(e.target.result);r.readAsText(file);}
+
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2){showSt('CSV appears empty','warn');return;}
+  const hdrs=splitCSV(lines[0]).map(h=>h.trim().toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim());
+  const fc=(...t)=>{for(const x of t){const i=hdrs.findIndex(h=>h.includes(x));if(i>=0)return i;}return-1;};
+  const cKit=fc('kit requested','kit','sku'),cQty=fc('quantity','qty'),cDate=fc('date requested','date'),cNeed=fc('need done by','need by','deadline','due'),cDone=fc('atomix complete','complete','done','status');
+  if(cKit<0||cQty<0){showSt('Cannot find Kit or Quantity columns','warn');return;}
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const cells=splitCSV(lines[i]);
+    if(!cells[cKit]?.trim())continue;
+    const sku=cells[cKit]?.trim()||'',qty=parseInt(cells[cQty])||0,date=csvDate(cells[cDate]?.trim()||''),needBy=csvDate(cells[cNeed]?.trim()||'');
+    const dv=(cells[cDone]?.trim()||'').toLowerCase();
+    const done=dv==='true'||dv==='1'||dv==='yes'||dv==='✓'||dv==='x'||dv==='checked'||dv==='true';
+    if(sku)rows.push({sku,qty,date,needBy,isDone:done});
+  }
+  _csvRows=rows.filter(r=>!r.isDone);
+  renderPreview(_csvRows,rows.filter(r=>r.isDone));
+}
+
+function splitCSV(line){const res=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(c===','&&!inQ){res.push(cur);cur='';}else cur+=c;}res.push(cur);return res;}
+function csvDate(s){if(!s)return'';const m=s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);if(m){const y=m[3]?(m[3].length===2?'20'+m[3]:m[3]):new Date().getFullYear();return`${y}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;}return s;}
+
+function renderPreview(active,skipped){
+  document.getElementById('preview-wrap').style.display='block';
+  document.getElementById('prev-title').textContent=`${active.length} jobs ready to post`;
+  document.getElementById('prev-sub').textContent=skipped.length?`${skipped.length} completed rows skipped`:'';
+  document.getElementById('prev-body').innerHTML=[
+    ...active.map((r,i)=>`<tr>
+      <td style="font-family:monospace;font-size:12px">${r.sku}</td>
+      <td>${r.qty.toLocaleString()}</td>
+      <td>${r.date||'—'}</td>
+      <td>${r.needBy?dueBadge(r.needBy)||r.needBy:'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="rmPrev(${i})">✕</button></td>
+    </tr>`),
+    ...skipped.map(r=>`<tr class="skipped"><td style="font-family:monospace;font-size:12px">${r.sku}</td><td>${r.qty}</td><td>${r.date||'—'}</td><td>${r.needBy||'—'}</td><td style="font-size:10px;color:var(--text-dim)">Completed</td></tr>`)
+  ].join('');
+}
+function rmPrev(i){_csvRows.splice(i,1);renderPreview(_csvRows,[]);if(!_csvRows.length)clearPrev();}
+function clearPrev(){_csvRows=[];document.getElementById('preview-wrap').style.display='none';document.getElementById('csv-in').value='';}
+
+async function postJobs(){
+  if(!_csvRows.length)return;
+  const btn=document.querySelector('#preview-wrap .btn-primary');
+  btn.textContent='Posting...';btn.disabled=true;
+  for(const r of _csvRows){
+    const comps=kitComps(r.sku).map(s=>({sku:s,desc:skuDesc(s),lot:'',exp:'',notes:''}));
+    const job={kitSku:r.sku,qty:String(r.qty),dateRequested:r.date,needBy:r.needBy,components:comps,postedAt:new Date().toISOString(),verifyKitting:null,verifyInventory:null};
+    const id=await fbCreate(job);if(id)job._id=id;
+    JOBS.unshift(job);
+  }
+  saveLoc();clearPrev();renderJobs();renderSum();
+  btn.textContent='Post to Kitting Lead →';btn.disabled=false;
+  showSt(`✓ ${_csvRows.length} jobs posted`,'ok');
+  _csvRows=[];
+}
+
+async function addManual(){
+  const sku=document.getElementById('add-sku').value.trim();
+  const qty=document.getElementById('add-qty').value.trim();
+  const date=document.getElementById('add-date').value;
+  const needBy=document.getElementById('add-needby').value;
+  if(!sku){showSt('Select a kit SKU','warn');return;}
+  const comps=kitComps(sku).map(s=>({sku:s,desc:skuDesc(s),lot:'',exp:'',notes:''}));
+  const job={kitSku:sku,qty,dateRequested:date,needBy,components:comps,postedAt:new Date().toISOString(),verifyKitting:null,verifyInventory:null};
+  const id=await fbCreate(job);if(id)job._id=id;
+  JOBS.unshift(job);saveLoc();
+  document.getElementById('add-sku').value='';document.getElementById('add-qty').value='';
+  renderJobs();renderSum();showSt(`✓ Job posted — ${sku}`,'ok');
+}
+
+// ═══ HISTORY ══════════════════════════════════════════════════════════
+function clearHF(){document.getElementById('h-search').value='';document.getElementById('h-sku').value='';document.getElementById('h-verify').value='';document.getElementById('h-sort').value='newest';renderHistory();}
+
+function renderHistory(){
+  let hist=ls('lt_history')||[];
+  const q=(document.getElementById('h-search')?.value||'').toLowerCase();
+  const fSku=document.getElementById('h-sku')?.value||'';
+  const fV=document.getElementById('h-verify')?.value||'';
+  const sort=document.getElementById('h-sort')?.value||'newest';
+  const today=new Date().toISOString().split('T')[0];
+  const skuSel=document.getElementById('h-sku');
+  if(skuSel){const c=skuSel.value;skuSel.innerHTML='<option value="">All SKUs</option>'+[...new Set(hist.map(j=>j.kitSku).filter(Boolean))].sort().map(s=>`<option value="${s}"${s===c?' selected':''}>${s}</option>`).join('');}
+  document.getElementById('h-sum').innerHTML=`
+    <div class="sum-card"><div class="sum-val" style="color:var(--green)">${hist.length}</div><div class="sum-lbl">Total Logged</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--blue)">${hist.filter(j=>(j.completedAt||'').startsWith(today)).length}</div><div class="sum-lbl">Today</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--text-muted)">${new Set(hist.map(j=>j.kitSku)).size}</div><div class="sum-lbl">Unique SKUs</div></div>`;
+  if(fSku)hist=hist.filter(j=>j.kitSku===fSku);
+  if(fV==='complete')hist=hist.filter(j=>j.verifyKitting&&j.verifyInventory);
+  if(fV==='kitting')hist=hist.filter(j=>j.verifyKitting&&!j.verifyInventory);
+  if(q)hist=hist.filter(j=>[j.kitSku,j.dateRequested,j.needBy,...(j.components||[]).flatMap(c=>[c.sku,c.lot])].join(' ').toLowerCase().includes(q));
+  if(sort==='oldest')hist=[...hist].reverse();
+  document.getElementById('h-bar').textContent=hist.length!==(ls('lt_history')||[]).length?`${hist.length} shown`:'';
+  const el=document.getElementById('hist-list');
+  if(!hist.length){el.innerHTML='<div style="text-align:center;padding:40px;font-size:13px;color:var(--text-dim)">No completed jobs yet.</div>';return;}
+  el.innerHTML=hist.map((j,i)=>{
+    const kv=j.verifyKitting,iv=j.verifyInventory;
+    const kChip=kv?`<span class="vchip vchip-k"><span class="vdot"></span>Kitting · ${kv.at}</span>`:`<span class="vchip vchip-p"><span class="vdot"></span>Kitting</span>`;
+    const iChip=iv?`<span class="vchip vchip-i"><span class="vdot"></span>Inventory · ${iv.at}</span>`:`<span class="vchip vchip-p"><span class="vdot"></span>Inventory</span>`;
+    const compRows=(j.components||[]).map(c=>{const ei=expInfo(c.exp);const lotHl=q&&c.lot&&c.lot.toLowerCase().includes(q)?`<span class="lot-pill" style="border-color:var(--amber);color:var(--amber)">${c.lot}</span>`:`<span class="lot-pill">${c.lot||'—'}</span>`;const skuHl=q&&(c.sku||'').toLowerCase().includes(q)?`<b style="color:var(--amber)">${c.sku}</b>`:(c.sku||'—');return`<tr><td style="font-family:monospace;font-size:11px">${skuHl}</td><td style="color:var(--text-muted);font-size:11px">${c.desc||'—'}</td><td>${lotHl}</td><td class="${ei.cls}">${ei.txt}</td><td style="color:var(--text-dim);font-size:11px">${c.notes||''}</td></tr>`;}).join('');
+    const due=dueBadge(j.needBy);
+    return`<div class="hcard ${kv&&iv?'hc-done':''}">
+      <div class="hcard-hd" onclick="toggleH(${i})">
+        <span class="jchev" id="hch-${i}">▶</span>
+        <div class="jinfo">
+          <div class="jsku">${j.kitSku}</div>
+          <div class="jmeta"><span>Qty: ${j.qty||'—'}</span>${j.dateRequested?`<span>Requested: ${j.dateRequested}</span>`:''}${due}</div>
+        </div>
+        <div class="jright">${kChip}${iChip}</div>
+      </div>
+      <div class="hbody" id="hb-${i}">
+        <table class="htbl"><thead><tr><th style="width:130px">SKU</th><th>Description</th><th style="width:130px">Lot #</th><th style="width:110px">Exp Date</th><th>Notes</th></tr></thead><tbody>${compRows}</tbody></table>
+        <div class="vbar">${kChip}${iChip}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleH(i){const b=document.getElementById('hb-'+i),c=document.getElementById('hch-'+i);if(!b)return;const o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);}
+
+// ═══ ADMIN ════════════════════════════════════════════════════════════
+const ADM_PIN='0202';let _aBuf='';
+function aKey(d){if(_aBuf.length>=4)return;_aBuf+=d;document.querySelectorAll('#adm-dots .pdot').forEach((x,i)=>x.classList.toggle('filled',i<_aBuf.length));if(_aBuf.length===4)setTimeout(chkAdm,120);}
+function aBk(){_aBuf=_aBuf.slice(0,-1);document.querySelectorAll('#adm-dots .pdot').forEach((x,i)=>x.classList.toggle('filled',i<_aBuf.length));}
+function aCancel(){_aBuf='';switchTab('jobs');}
+function chkAdm(){
+  if(_aBuf===ADM_PIN){
+    document.getElementById('adm-gate').style.display='none';document.getElementById('adm-panel').style.display='block';
+    renderAdmKits();renderAdmSkus();buildAddSku();
+    const p=getVPins();document.getElementById('pin-k').value=p.kitting;document.getElementById('pin-i').value=p.inventory;
+  }else{document.getElementById('adm-err').textContent='Incorrect PIN';_aBuf='';document.querySelectorAll('#adm-dots .pdot').forEach(x=>x.classList.remove('filled'));}
+}
+function aLock(){document.getElementById('adm-gate').style.display='block';document.getElementById('adm-panel').style.display='none';_aBuf='';document.querySelectorAll('#adm-dots .pdot').forEach(x=>x.classList.remove('filled'));document.getElementById('adm-err').textContent='';}
+
+function renderAdmKits(){const kits=getKits();document.getElementById('adm-kits').innerHTML=kits.map((k,i)=>`<tr><td><input type="text" value="${k.sku}" id="ak-s-${i}" style="font-family:monospace"/></td><td><input type="text" value="${k.comps.join(', ')}" id="ak-c-${i}"/></td><td><button class="btn btn-danger btn-sm" onclick="admDelKit(${i})">✕</button></td></tr>`).join('');}
+function admAddKit(){const k=getKits();k.push({sku:'NEW-SKU',comps:[]});lsSet('lt_kits',k);renderAdmKits();buildAddSku();}
+function admDelKit(i){const k=getKits();k.splice(i,1);lsSet('lt_kits',k);renderAdmKits();buildAddSku();}
+
+function renderAdmSkus(){const s=getSkus();document.getElementById('adm-skus').innerHTML=s.map((x,i)=>`<tr><td><input type="text" value="${x.sku}" id="as-s-${i}" style="font-family:monospace"/></td><td><input type="text" value="${x.desc}" id="as-d-${i}"/></td><td><button class="btn btn-danger btn-sm" onclick="admDelSku(${i})">✕</button></td></tr>`).join('');}
+function admAddSku(){const s=getSkus();s.push({sku:'NEW-BULK-SKU',desc:'Description'});lsSet('lt_skus',s);renderAdmSkus();}
+function admDelSku(i){const s=getSkus();s.splice(i,1);lsSet('lt_skus',s);renderAdmSkus();}
+
+function buildAddSku(){const sel=document.getElementById('add-sku');if(!sel)return;const k=getKits();sel.innerHTML='<option value="">— Select —</option>'+k.map(x=>`<option value="${x.sku}">${x.sku}</option>`).join('');}
+
+function admSave(){
+  const kits=getKits();const nk=kits.map((_,i)=>({sku:(document.getElementById(`ak-s-${i}`)?.value||'').trim(),comps:(document.getElementById(`ak-c-${i}`)?.value||'').split(',').map(s=>s.trim()).filter(Boolean)})).filter(k=>k.sku);lsSet('lt_kits',nk);
+  const skus=getSkus();const ns=skus.map((_,i)=>({sku:(document.getElementById(`as-s-${i}`)?.value||'').trim(),desc:(document.getElementById(`as-d-${i}`)?.value||'').trim()})).filter(s=>s.sku);lsSet('lt_skus',ns);
+  const pk=document.getElementById('pin-k')?.value.trim(),pi=document.getElementById('pin-i')?.value.trim();
+  if(pk&&pi)lsSet('lt_vpins',{kitting:pk,inventory:pi});
+  buildAddSku();showSt('✓ Settings saved','ok');
+}
+
+// ═══ TABS & UTILS ══════════════════════════════════════════════════════
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  document.getElementById('tb-'+n).classList.add('active');
+  if(n==='history')renderHistory();
+}
+function showSt(msg,type='ok'){const b=document.getElementById('sbar');b.textContent=msg;b.className='sbar '+(type==='ok'?'s-ok':'s-warn');b.style.display='block';setTimeout(()=>b.style.display='none',4000);}
+
+// ═══ BOOT ════════════════════════════════════════════════════════════
+document.getElementById('add-date').value=new Date().toISOString().split('T')[0];
+buildAddSku();loadJobs();
+</script>
+</body>
+</html>
