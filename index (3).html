@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Atomix Special Projects Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c10;--bg2:#0d1219;--bg3:#111820;--bg4:#162030;
+  --border:#1a2535;--border2:#1f2e42;
+  --green:#3EBD84;--green-dim:#091f14;--green-mid:#0f3324;--green-glow:rgba(62,189,132,0.15);
+  --teal:#2dd4bf;--teal-dim:#071c1a;--teal-glow:rgba(45,212,191,0.12);
+  --blue:#4A9FD4;--blue-dim:#0a1a28;--blue-glow:rgba(74,159,212,0.12);
+  --amber:#f59e0b;--amber-dim:#1a1103;--amber-glow:rgba(245,158,11,0.12);
+  --purple:#a78bfa;--purple-dim:#120e22;--purple-glow:rgba(167,139,250,0.12);
+  --red:#f87171;--red-dim:#1f0a0a;
+  --text:#ddeeff;--text2:#6a8aaa;--text3:#2e4560;
+  --radius:12px;--radius-lg:18px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+body::before{content:'';position:fixed;inset:0;opacity:.025;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size:128px}
+
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.ambient-blob{position:absolute;border-radius:50%;filter:blur(100px)}
+.blob1{width:700px;height:500px;background:radial-gradient(circle,rgba(62,189,132,0.12),transparent 70%);top:-200px;left:-200px}
+.blob2{width:600px;height:600px;background:radial-gradient(circle,rgba(74,159,212,0.08),transparent 70%);bottom:-200px;right:-100px}
+.blob3{width:400px;height:400px;background:radial-gradient(circle,rgba(45,212,191,0.06),transparent 70%);top:40%;left:40%}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(8,12,16,0.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(26,37,53,0.9);padding:0 40px;height:58px;
+  display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--green),var(--teal));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#080c10;box-shadow:0 0 20px var(--green-glow)}
+.nav-logo-text{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.4px}
+.nav-logo-text em{color:var(--green);font-style:normal}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-tag{font-size:10px;font-weight:700;color:var(--text3);background:var(--bg3);
+  border:1px solid var(--border2);padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.08em}
+.admin-btn{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:'Outfit',sans-serif;border:1.5px solid var(--green);background:transparent;
+  color:var(--green);transition:all .2s;display:flex;align-items:center;gap:6px}
+.admin-btn:hover{background:var(--green-mid);box-shadow:0 0 24px var(--green-glow)}
+.admin-btn.exit{border-color:var(--red);color:var(--red)}
+.admin-btn.exit:hover{background:var(--red-dim);box-shadow:none}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:80px 40px 56px;max-width:1160px;margin:0 auto}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:700;
+  color:var(--green);text-transform:uppercase;letter-spacing:.16em;
+  background:var(--green-dim);border:1px solid rgba(62,189,132,0.2);
+  padding:5px 14px;border-radius:20px;margin-bottom:28px}
+.hero-kicker-dot{width:5px;height:5px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.hero-title{font-size:clamp(36px,5vw,60px);font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:20px}
+.hero-title .line2{display:block;background:linear-gradient(100deg,var(--green) 0%,var(--teal) 45%,var(--blue) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:15px;color:var(--text2);max-width:480px;line-height:1.8;margin-bottom:40px;font-weight:400}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column;gap:2px}
+.hero-stat-num{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1}
+.hero-stat-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.hero-stat-divider{width:1px;background:var(--border2);align-self:stretch}
+
+/* DEPT SECTIONS */
+.dept-sections{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 40px 80px}
+.dept-block{margin-bottom:12px}
+
+/* ACCORDION TRIGGER */
+.dept-header{display:flex;align-items:center;gap:16px;padding:18px 22px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  cursor:pointer;user-select:none;transition:all .2s;position:relative;overflow:hidden}
+.dept-header::before{content:'';position:absolute;top:0;left:22px;right:22px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);pointer-events:none}
+.dept-header:hover{border-color:var(--border2);background:var(--bg3)}
+.dept-block.open .dept-header{border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-bottom-color:transparent}
+.dept-header-sp:hover,.dept-block.open .dept-header-sp{border-color:rgba(62,189,132,0.35);background:linear-gradient(135deg,rgba(9,31,20,0.8),var(--bg2))}
+.dept-header-kit:hover,.dept-block.open .dept-header-kit{border-color:rgba(245,158,11,0.35);background:linear-gradient(135deg,rgba(26,17,3,0.8),var(--bg2))}
+.dept-header-retail:hover,.dept-block.open .dept-header-retail{border-color:rgba(45,212,191,0.35);background:linear-gradient(135deg,rgba(7,26,24,0.8),var(--bg2))}
+.dept-header-soon:hover,.dept-block.open .dept-header-soon{border-color:var(--border2)}
+
+.dept-icon-wrap{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.dept-icon-sp{background:linear-gradient(135deg,var(--green-mid),#0a2a1a);border:1px solid rgba(62,189,132,0.25)}
+.dept-icon-kit{background:linear-gradient(135deg,var(--amber-dim),#221605);border:1px solid rgba(245,158,11,0.25)}
+.dept-icon-retail{background:linear-gradient(135deg,var(--teal-dim),#071a18);border:1px solid rgba(45,212,191,0.25)}
+.dept-icon-soon{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border2)}
+.dept-meta{flex:1}
+.dept-name{font-size:18px;font-weight:800;letter-spacing:-.4px;line-height:1}
+.dept-desc{font-size:12px;color:var(--text2);margin-top:4px;font-weight:400}
+.dept-count{font-size:11px;font-weight:700;padding:3px 11px;border-radius:20px;letter-spacing:.04em;white-space:nowrap}
+.dept-count-sp{background:rgba(62,189,132,0.1);color:var(--green);border:1px solid rgba(62,189,132,0.2)}
+.dept-count-kit{background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.2)}
+.dept-count-retail{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
+.dept-count-soon{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+
+/* CHEVRON */
+.dept-chevron{font-size:13px;color:var(--text3);transition:transform .3s cubic-bezier(.4,0,.2,1),color .2s;flex-shrink:0}
+.dept-block.open .dept-chevron{transform:rotate(180deg);color:var(--text2)}
+
+/* ACCORDION BODY */
+.dept-body{
+  display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .35s cubic-bezier(.4,0,.2,1);
+  background:var(--bg2);
+  border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--radius-lg) var(--radius-lg);
+  overflow:hidden;
+}
+.dept-block.open .dept-body{grid-template-rows:1fr}
+.dept-block.open .dept-body-sp{border-color:rgba(62,189,132,0.35)}
+.dept-block.open .dept-body-kit{border-color:rgba(245,158,11,0.35)}
+.dept-block.open .dept-body-retail{border-color:rgba(45,212,191,0.35)}
+.dept-block.open .dept-body-soon{border-color:var(--border2)}
+.dept-body-inner{overflow:hidden;padding:0}
+.dept-block.open .dept-body-inner{padding:20px}
+
+/* TOOL CARDS */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:22px;text-decoration:none;color:inherit;
+  transition:all .22s cubic-bezier(.25,.8,.25,1);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+.tool-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);pointer-events:none}
+.tool-card:hover{transform:translateY(-4px)}
+.tool-card:hover .card-arrow{transform:translateX(5px);opacity:1}
+.tool-card.coming{opacity:.45;cursor:default;pointer-events:none}
+.card-sp:hover{border-color:rgba(62,189,132,0.45);box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(62,189,132,0.25),0 0 40px var(--green-glow)}
+.card-kit:hover{border-color:rgba(245,158,11,0.45);box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(245,158,11,0.25),0 0 40px var(--amber-glow)}
+.card-retail:hover{border-color:rgba(45,212,191,0.45);box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(45,212,191,0.25),0 0 40px var(--teal-glow)}
+
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card-icon{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.icon-sp{background:linear-gradient(135deg,var(--green-mid),#091f14);border:1px solid rgba(62,189,132,0.2)}
+.icon-kit{background:linear-gradient(135deg,var(--amber-dim),#1a1103);border:1px solid rgba(245,158,11,0.2)}
+.icon-retail{background:linear-gradient(135deg,var(--teal-dim),#071c1a);border:1px solid rgba(45,212,191,0.2)}
+.icon-blue{background:linear-gradient(135deg,var(--blue-dim),#091628);border:1px solid rgba(74,159,212,0.2)}
+.icon-purple{background:linear-gradient(135deg,var(--purple-dim),#100d1e);border:1px solid rgba(167,139,250,0.2)}
+
+.card-badge-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.card-badge{font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.badge-live-sp{background:rgba(62,189,132,0.12);color:var(--green);border:1px solid rgba(62,189,132,0.25)}
+.badge-live-kit{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
+.badge-live-retail{background:rgba(45,212,191,0.12);color:var(--teal);border:1px solid rgba(45,212,191,0.25)}
+.badge-soon{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
+.cross-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
+  color:var(--purple);background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2)}
+
+.card-title{font-size:15px;font-weight:700;letter-spacing:-.2px;margin-bottom:5px;line-height:1.2}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.7;font-weight:400}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap}
+.card-tag{font-size:10px;font-weight:600;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:20px}
+.card-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:12px;margin-top:auto}
+.card-open{font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px}
+.open-sp{color:var(--green)}
+.open-kit{color:var(--amber)}
+.open-retail{color:var(--teal)}
+.card-arrow{transition:transform .2s,opacity .2s;opacity:.5;font-size:14px}
+.card-coming-label{font-size:12px;color:var(--text3);font-weight:600}
+
+/* ADMIN */
+.admin-panel{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 40px 40px;display:none}
+.admin-panel.open{display:block}
+.admin-header{background:linear-gradient(135deg,#091f14,#0a1828);border:1px solid rgba(62,189,132,0.2);
+  border-radius:var(--radius-lg);padding:22px 28px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.admin-icon{width:46px;height:46px;background:linear-gradient(135deg,var(--green),var(--teal));
+  border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 24px var(--green-glow)}
+.admin-title{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.admin-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.admin-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden}
+.admin-card-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3)}
+.admin-card-icon{font-size:15px}
+.admin-card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;flex:1}
+.admin-card-count{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px}
+.admin-card-body{padding:16px 18px}
+.admin-empty{font-size:13px;color:var(--text3);font-style:italic;padding:8px 0}
+.labor-member{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.labor-member:last-child{border-bottom:none}
+.labor-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.labor-name{font-size:13px;font-weight:600;flex:1}
+.labor-loc{font-size:11px;color:var(--text2)}
+.labor-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.badge-ot{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+.badge-lunch{background:rgba(249,115,22,0.15);color:#fb923c;border:1px solid rgba(249,115,22,0.3)}
+.badge-alert-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.3)}
+.badge-eod{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.order-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.order-row:last-child{border-bottom:none}
+.order-brand{font-size:13px;font-weight:700;flex:1}
+.order-type-sm{font-size:10px;color:var(--text3);font-weight:600}
+.order-due{font-size:11px;font-weight:600}
+.stage-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dept-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.dept-row:last-child{border-bottom:none}
+.dept-name-sm{color:var(--text2)}
+.dept-hrs{font-weight:700;color:var(--green)}
+.alert-strip{border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600}
+.alert-amber{background:linear-gradient(90deg,rgba(245,158,11,0.08),transparent);border:1px solid rgba(245,158,11,0.2);color:var(--amber)}
+
+/* FOOTER */
+.footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:24px 40px;
+  display:flex;align-items:center;justify-content:space-between;max-width:1160px;margin:0 auto}
+.footer-logo{font-size:13px;font-weight:700;color:var(--text3)}
+.footer-logo em{color:var(--green);font-style:normal}
+.footer-note{font-size:11px;color:var(--text3)}
+
+/* PIN */
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:300;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.pin-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:22px;padding:36px;width:310px;text-align:center;
+  box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 0 1px rgba(62,189,132,0.1),0 0 60px var(--green-glow)}
+.pin-modal h3{font-size:20px;font-weight:800;margin-bottom:6px;letter-spacing:-.3px}
+.pin-modal p{font-size:13px;color:var(--text2);margin-bottom:22px}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:0 0 8px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:var(--border2);transition:all .15s}
+.pin-dot.filled{background:var(--green);box-shadow:0 0 12px var(--green-glow)}
+.pin-err{font-size:12px;color:var(--red);min-height:18px;margin-bottom:8px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.kbtn{padding:16px;border:1px solid var(--border2);border-radius:11px;background:var(--bg3);cursor:pointer;font-size:18px;font-weight:700;color:var(--text);font-family:'Outfit',sans-serif;transition:all .12s}
+.kbtn:hover{background:var(--bg4)}
+.kbtn:active{transform:scale(.95)}
+.kbtn.sm{font-size:12px;color:var(--text2);font-weight:600}
+
+@media(max-width:720px){.admin-grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .hero,.dept-sections,.admin-panel{padding-left:20px;padding-right:20px}
+  .nav{padding:0 20px}
+  .tool-grid{grid-template-columns:1fr}
+  .nav-tag{display:none}
+  .footer{padding:16px 20px;flex-direction:column;gap:6px;text-align:center}
+  .hero-stats{gap:20px}
+  .hero-stat-divider{display:none}
+}
+</style>
+</head>
+<body>
+
+<script type="module">
+  import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import{getFirestore,doc,getDoc,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  const cfg={apiKey:"AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",authDomain:"atomix-tools.firebaseapp.com",projectId:"atomix-tools",storageBucket:"atomix-tools.firebasestorage.app",messagingSenderId:"211594945190",appId:"1:211594945190:web:bf70681d9335816984ca67"};
+  const app=initializeApp(cfg);const db=getFirestore(app);
+  window._firestore=db;window._firestoreReady=true;window._fsDoc=doc;window._fsGetDoc=getDoc;window._fsOnSnapshot=onSnapshot;
+  window.dispatchEvent(new Event('firestore-ready'));
+</script>
+
+<div class="ambient">
+  <div class="ambient-blob blob1"></div>
+  <div class="ambient-blob blob2"></div>
+  <div class="ambient-blob blob3"></div>
+</div>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">A</div>
+    <span class="nav-logo-text">atomix<em>.</em></span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-tag">Internal Use Only</span>
+    <button class="admin-btn" id="adminBtn" onclick="handleAdmin()">🔐 Admin</button>
+  </div>
+</nav>
+
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-header">
+    <div class="admin-icon">🛡</div>
+    <div>
+      <div class="admin-title">Admin Overview</div>
+      <div class="admin-sub">Live snapshot across all tools — Special Projects</div>
+    </div>
+  </div>
+  <div id="adminContent"><div style="padding:20px;color:var(--text3);font-size:13px;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:13px;height:13px;border:2px solid var(--green);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite"></span>Loading...</div></div>
+</div>
+
+<div class="hero">
+  <div class="hero-kicker"><span class="hero-kicker-dot"></span>Internal Tool Suite</div>
+  <h1 class="hero-title">Atomix<span class="line2">Operations Tools</span></h1>
+  <p class="hero-sub">Purpose-built utilities for the Atomix Special Projects & Retail operations team. Organized by department, cloud synced, always available.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="hero-stat-num">9</span><span class="hero-stat-label">Live Tools</span></div>
+    <div class="hero-stat-divider"></div>
+    <div class="hero-stat"><span class="hero-stat-num">3</span><span class="hero-stat-label">Departments</span></div>
+    <div class="hero-stat-divider"></div>
+    <div class="hero-stat"><span class="hero-stat-num">☁</span><span class="hero-stat-label">Cloud Synced</span></div>
+  </div>
+</div>
+
+<div class="dept-sections">
+
+  <!-- ══ SPECIAL PROJECTS ══ -->
+  <div class="dept-block" id="dept-sp">
+    <div class="dept-header dept-header-sp" onclick="toggleDept('dept-sp')">
+      <div class="dept-icon-wrap dept-icon-sp">⚙️</div>
+      <div class="dept-meta">
+        <div class="dept-name">Special Projects Tools</div>
+        <div class="dept-desc">Quoting, scheduling, and project visibility for the SP team</div>
+      </div>
+      <span class="dept-count dept-count-sp">3 tools</span>
+      <span class="dept-chevron">▼</span>
+    </div>
+    <div class="dept-body dept-body-sp"><div class="dept-body-inner"><div class="tool-grid">
+
+      <a href="special-project-quote.html" class="tool-card card-sp">
+        <div class="card-top">
+          <div class="card-icon icon-blue">💰</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-sp">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Special Project Quote</div>
+          <div class="card-desc">Build client quotes with labor, materials catalog, and auto-calculated totals. Export as a clean PDF in one click.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">quotes</span><span class="card-tag">materials</span><span class="card-tag">PDF export</span></div>
+        <div class="card-footer"><span class="card-open open-sp">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="special-projects-dashboard.html" class="tool-card card-sp">
+        <div class="card-top">
+          <div class="card-icon icon-sp">📋</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-sp">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Special Projects Dashboard</div>
+          <div class="card-desc">Live view of your ClickUp task board — track active special projects, assignees, statuses, and due dates in real time.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">ClickUp</span><span class="card-tag">tasks</span><span class="card-tag">pipeline</span></div>
+        <div class="card-footer"><span class="card-open open-sp">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="labor-calculator.html" class="tool-card card-sp">
+        <div class="card-top">
+          <div class="card-icon icon-sp">⏱</div>
+          <div class="card-badge-wrap">
+            <span class="card-badge badge-live-sp">● Live</span>
+            <span class="cross-badge">✦ Also in Kitting</span>
+          </div>
+        </div>
+        <div>
+          <div class="card-title">Project Labor Calculator</div>
+          <div class="card-desc">Estimate project duration with adjustable rates and shift lengths. Supports Barcoding, Amazon FBA, and Kitting.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">barcoding</span><span class="card-tag">FBA</span><span class="card-tag">kitting</span><span class="card-tag">estimate</span></div>
+        <div class="card-footer"><span class="card-open open-sp">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+    </div></div></div>
+  </div>
+
+  <!-- ══ KITTING ══ -->
+  <div class="dept-block" id="dept-kit">
+    <div class="dept-header dept-header-kit" onclick="toggleDept('dept-kit')">
+      <div class="dept-icon-wrap dept-icon-kit">📦</div>
+      <div class="dept-meta">
+        <div class="dept-name">Kitting Tools</div>
+        <div class="dept-desc">Staff deployment, hour tracking, and labor planning for the floor</div>
+      </div>
+      <span class="dept-count dept-count-kit">3 tools</span>
+      <span class="dept-chevron">▼</span>
+    </div>
+    <div class="dept-body dept-body-kit"><div class="dept-body-inner"><div class="tool-grid">
+
+      <a href="labor-tracker.html" class="tool-card card-kit">
+        <div class="card-top">
+          <div class="card-icon icon-kit">👥</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-kit">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Labor Tracker</div>
+          <div class="card-desc">Deploy staff across departments, track hours in real time, log OT and lunch breaks. Maria Mode + daily reports for admin review.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">drag & drop</span><span class="card-tag">hours</span><span class="card-tag">OT alerts</span><span class="card-tag">reports</span></div>
+        <div class="card-footer"><span class="card-open open-kit">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="labor-calculator.html" class="tool-card card-kit">
+        <div class="card-top">
+          <div class="card-icon icon-kit">⏱</div>
+          <div class="card-badge-wrap">
+            <span class="card-badge badge-live-kit">● Live</span>
+            <span class="cross-badge">✦ Also in SP Tools</span>
+          </div>
+        </div>
+        <div>
+          <div class="card-title">Project Labor Calculator</div>
+          <div class="card-desc">Estimate project duration with adjustable rates and shift lengths. Supports Barcoding, Amazon FBA, and Kitting.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">barcoding</span><span class="card-tag">FBA</span><span class="card-tag">kitting</span><span class="card-tag">estimate</span></div>
+        <div class="card-footer"><span class="card-open open-kit">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="iqbar-lot-tracker.html" class="tool-card card-kit">
+        <div class="card-top">
+          <div class="card-icon icon-kit">🔬</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-kit">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">IQ Bar Lot Tracker</div>
+          <div class="card-desc">Log component lots and expiration dates per kit job. FEFO compliance tracking with dual verification by Kitting Lead and Inventory Lead.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">lot tracking</span><span class="card-tag">FEFO</span><span class="card-tag">exp dates</span><span class="card-tag">verification</span></div>
+        <div class="card-footer"><span class="card-open open-kit">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+    </div></div></div>
+  </div>
+
+  <!-- ══ RETAIL / B2B ══ -->
+  <div class="dept-block" id="dept-retail">
+    <div class="dept-header dept-header-retail" onclick="toggleDept('dept-retail')">
+      <div class="dept-icon-wrap dept-icon-retail">🏪</div>
+      <div class="dept-meta">
+        <div class="dept-name">Retail / B2B Tools</div>
+        <div class="dept-desc">Order management, client intelligence, and fulfillment documentation</div>
+      </div>
+      <span class="dept-count dept-count-retail">5 tools</span>
+      <span class="dept-chevron">▼</span>
+    </div>
+    <div class="dept-body dept-body-retail"><div class="dept-body-inner"><div class="tool-grid">
+
+      <a href="retail-dashboard.html" class="tool-card card-retail">
+        <div class="card-top">
+          <div class="card-icon icon-retail">📦</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-retail">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Retail / B2B Dashboard</div>
+          <div class="card-desc">Manage daily and weekly orders, assign to team members, and track stages from incoming to shipped. Nate Mode for full control.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">orders</span><span class="card-tag">pipeline</span><span class="card-tag">assignments</span></div>
+        <div class="card-footer"><span class="card-open open-retail">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="brand-hub.html" class="tool-card card-retail">
+        <div class="card-top">
+          <div class="card-icon icon-retail">🏢</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-retail">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Brand Hub</div>
+          <div class="card-desc">Central profiles for every client and retailer. Store contacts, SOPs, routing guides, compliance docs, and photos — all cloud synced.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">clients</span><span class="card-tag">retailers</span><span class="card-tag">routing guides</span></div>
+        <div class="card-footer"><span class="card-open open-retail">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="packing-slip.html" class="tool-card card-retail">
+        <div class="card-top">
+          <div class="card-icon icon-purple">🧾</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-retail">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Packing Slip Maker</div>
+          <div class="card-desc">Generate packing slips for any client. Select from the full client list, manage their SKU library, and print in one click.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">all clients</span><span class="card-tag">SKU library</span><span class="card-tag">CSV import</span><span class="card-tag">print</span></div>
+        <div class="card-footer"><span class="card-open open-retail">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="iq-bar-packing-slip.html" class="tool-card card-retail">
+        <div class="card-top">
+          <div class="card-icon icon-purple">📋</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-retail">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">IQ Bar Packing Slip</div>
+          <div class="card-desc">Dedicated packing slip generator for IQ Bar with preset SKU library, shipping details, and print-ready PDF output.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">IQ Bar</span><span class="card-tag">packing slip</span><span class="card-tag">print</span></div>
+        <div class="card-footer"><span class="card-open open-retail">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+      <a href="freight-quote.html" class="tool-card card-retail">
+        <div class="card-top">
+          <div class="card-icon icon-retail">🚚</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-live-retail">● Live</span></div>
+        </div>
+        <div>
+          <div class="card-title">Freight Quote Builder</div>
+          <div class="card-desc">Build professional freight quote documents with multiple carrier options, pricing, and arrival dates. Export as a print-ready PDF to send to customers.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">freight</span><span class="card-tag">carriers</span><span class="card-tag">quotes</span><span class="card-tag">PDF export</span></div>
+        <div class="card-footer"><span class="card-open open-retail">Open tool <span class="card-arrow">→</span></span></div>
+      </a>
+
+    </div></div></div>
+  </div>
+
+  <!-- ══ IN DEVELOPMENT ══ -->
+  <div class="dept-block" id="dept-soon">
+    <div class="dept-header dept-header-soon" onclick="toggleDept('dept-soon')">
+      <div class="dept-icon-wrap dept-icon-soon">🔭</div>
+      <div class="dept-meta">
+        <div class="dept-name">In Development</div>
+        <div class="dept-desc">Tools currently being built for the team</div>
+      </div>
+      <span class="dept-count dept-count-soon">1 coming</span>
+      <span class="dept-chevron">▼</span>
+    </div>
+    <div class="dept-body dept-body-soon"><div class="dept-body-inner"><div class="tool-grid">
+      <div class="tool-card coming">
+        <div class="card-top">
+          <div class="card-icon icon-sp">📊</div>
+          <div class="card-badge-wrap"><span class="card-badge badge-soon">Coming Soon</span></div>
+        </div>
+        <div>
+          <div class="card-title">Daily Output Log</div>
+          <div class="card-desc">Log units completed per department and generate shift summary reports for ops review.</div>
+        </div>
+        <div class="card-tags"><span class="card-tag">units</span><span class="card-tag">output</span><span class="card-tag">reports</span></div>
+        <div class="card-footer"><span class="card-coming-label">In development</span></div>
+      </div>
+    </div></div></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-logo">atomix<em>.</em> Operations Tools</div>
+  <div class="footer-note">Internal use only · atomixlogistics.com</div>
+</div>
+
+<div class="overlay" id="pinOverlay">
+  <div class="pin-modal">
+    <h3>Admin Access</h3>
+    <p>Enter your 4-digit admin PIN</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="keypad">
+      <button class="kbtn" data-k="1">1</button><button class="kbtn" data-k="2">2</button><button class="kbtn" data-k="3">3</button>
+      <button class="kbtn" data-k="4">4</button><button class="kbtn" data-k="5">5</button><button class="kbtn" data-k="6">6</button>
+      <button class="kbtn" data-k="7">7</button><button class="kbtn" data-k="8">8</button><button class="kbtn" data-k="9">9</button>
+      <button class="kbtn sm" data-k="cancel">Cancel</button>
+      <button class="kbtn" data-k="0">0</button>
+      <button class="kbtn sm" data-k="back">⌫</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_PIN='0202';
+let isAdmin=false,pinBuf='';
+let laborData=null,ordersData=[];
+let _unsubLabor=null,_unsubOrders=null;
+
+function toggleDept(id) {
+  const block = document.getElementById(id);
+  if (!block) return;
+  block.classList.toggle('open');
+}
+
+function updateDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('filled',i<pinBuf.length);}
+function handleAdmin(){if(isAdmin){exitAdmin();return;}pinBuf='';document.getElementById('pinErr').textContent='';updateDots();document.getElementById('pinOverlay').classList.add('open');}
+function exitAdmin(){
+  isAdmin=false;if(_unsubLabor){_unsubLabor();_unsubLabor=null;}if(_unsubOrders){_unsubOrders();_unsubOrders=null;}
+  document.getElementById('adminPanel').classList.remove('open');
+  const b=document.getElementById('adminBtn');b.innerHTML='🔐 Admin';b.className='admin-btn';
+}
+document.querySelectorAll('.kbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const k=btn.dataset.k;
+    if(k==='cancel'){document.getElementById('pinOverlay').classList.remove('open');return;}
+    if(k==='back'){pinBuf=pinBuf.slice(0,-1);updateDots();return;}
+    if(pinBuf.length>=4)return;
+    pinBuf+=k;updateDots();
+    if(pinBuf.length===4){setTimeout(()=>{
+      if(pinBuf===ADMIN_PIN){
+        document.getElementById('pinOverlay').classList.remove('open');isAdmin=true;
+        const b=document.getElementById('adminBtn');b.innerHTML='🔒 Exit Admin';b.className='admin-btn exit';
+        document.getElementById('adminPanel').classList.add('open');
+        document.getElementById('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});
+        loadAdminData();
+      }else{document.getElementById('pinErr').textContent='Incorrect PIN — try again';pinBuf='';updateDots();}
+    },150);}
+  });
+});
+
+async function loadAdminData(){
+  document.getElementById('adminContent').innerHTML='<div style="padding:20px;color:var(--text3);font-size:13px;display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:13px;height:13px;border:2px solid var(--green);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite"></span>Loading live data...</div>';
+  try{const s=localStorage.getItem('atomix_labor_v5');if(s){laborData=JSON.parse(s);buildAdminPanel();}}catch(e){}
+  try{const s=localStorage.getItem('atomix_orders');if(s){ordersData=JSON.parse(s);buildAdminPanel();}}catch(e){}
+  if(!window._firestoreReady){await new Promise(resolve=>{const t=setTimeout(resolve,4000);window.addEventListener('firestore-ready',()=>{clearTimeout(t);resolve();},{once:true});});if(!window._firestoreReady)return;}
+  try{
+    const[lSnap,oSnap]=await Promise.all([window._fsGetDoc(window._fsDoc(window._firestore,'atomix','labor_tracker')),window._fsGetDoc(window._fsDoc(window._firestore,'atomix','retail_dashboard'))]);
+    if(lSnap.exists())laborData=lSnap.data();if(oSnap.exists())ordersData=oSnap.data().orders||[];
+    buildAdminPanel();
+    if(_unsubLabor)_unsubLabor();if(_unsubOrders)_unsubOrders();
+    _unsubLabor=window._fsOnSnapshot(window._fsDoc(window._firestore,'atomix','labor_tracker'),(s)=>{if(s.exists()&&isAdmin){laborData=s.data();buildAdminPanel();}});
+    _unsubOrders=window._fsOnSnapshot(window._fsDoc(window._firestore,'atomix','retail_dashboard'),(s)=>{if(s.exists()&&isAdmin){ordersData=s.data().orders||[];buildAdminPanel();}});
+  }catch(e){console.warn('Firebase admin load failed:',e);buildAdminPanel();}
+}
+
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${m}/${d}/${y.slice(2)}`;}
+function daysUntil(s){if(!s)return null;return Math.ceil((new Date(s)-new Date(today()))/86400000);}
+const ini=n=>n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const fmtH=v=>{const n=parseFloat(v)||0;return n===0?'0h':n%1===0?n+'h':n.toFixed(1)+'h';};
+const AV_COLORS=[{bg:'#1a2e3d',fg:'#4A9FD4'},{bg:'#1a3d2e',fg:'#3EBD84'},{bg:'#2e1a1a',fg:'#e05252'},{bg:'#2e2a1a',fg:'#d4a04A'},{bg:'#1a1a3d',fg:'#7A7ADD'},{bg:'#2e1a2e',fg:'#c45AB0'},{bg:'#1a2e2e',fg:'#4AC4C4'},{bg:'#252525',fg:'#aaa'}];
+const STAGE_COLORS={'Incoming / Received':'#3b82f6','In Prep':'#f59e0b','Staged / Ready':'#8b5cf6','Shipped / Complete':'#10b981'};
+const BASE_DEPTS=[{id:'kitting',name:'IQ Kitting',icon:'📦'},{id:'btbretail',name:'BTB / Retail',icon:'🏪'},{id:'dtc',name:'DTC Outbound',icon:'🚚'},{id:'receiving',name:'Receiving',icon:'📥'},{id:'other',name:'Other / SP',icon:'⚙️'}];
+
+function buildAdminPanel(){
+  const people=laborData?.people||[];const data=laborData?.data||{};const customDepts=laborData?.customDepts||[];
+  const todayKey=today();const dayData=data[todayKey]||{};const finalized=!!dayData['finalized'];
+  const allDepts=[...BASE_DEPTS,...customDepts.map(d=>typeof d==='string'?{name:d,icon:'📌'}:d)];
+  let alerts='';
+  const otPeople=people.filter(p=>{const h=dayData['hrs:'+p.id]||{};return Object.values(h).reduce((s,v)=>s+(parseFloat(v)||0),0)>8;});
+  const lunchPeople=people.filter(p=>dayData['loc:'+p.id]==='__LUNCH__');
+  if(otPeople.length)alerts+=`<div class="alert-strip alert-amber">⚠ ${otPeople.length} member${otPeople.length>1?'s':''} over 8h: ${otPeople.map(p=>p.name.split(' ')[0]).join(', ')}</div>`;
+  if(lunchPeople.length)alerts+=`<div class="alert-strip" style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);color:#fb923c;">🍽 ${lunchPeople.length} on lunch</div>`;
+  const totalHrsToday=people.reduce((sum,p)=>{const hrs=dayData['hrs:'+p.id]||{};return sum+Object.values(hrs).reduce((s,v)=>s+(parseFloat(v)||0),0);},0);
+  let laborHTML='';
+  if(!people.length){laborHTML='<div class="admin-empty">No team data yet.</div>';}
+  else{
+    const show=[...people.filter(p=>{const l=dayData['loc:'+p.id];return l&&l!=='__EOD__'&&l!=='__LUNCH__';}),
+      ...people.filter(p=>dayData['loc:'+p.id]==='__LUNCH__'),
+      ...people.filter(p=>!dayData['loc:'+p.id]),
+      ...people.filter(p=>dayData['loc:'+p.id]==='__EOD__')].slice(0,8);
+    show.forEach((p,i)=>{
+      const c=AV_COLORS[i%AV_COLORS.length];const loc=dayData['loc:'+p.id];const hrs=dayData['hrs:'+p.id]||{};
+      const total=Object.values(hrs).reduce((s,v)=>s+(parseFloat(v)||0),0);
+      const isOT=total>8,isAlert=total>10,isLunch=loc==='__LUNCH__',isEOD=loc==='__EOD__';
+      let badge='';
+      if(isAlert)badge=`<span class="labor-badge badge-alert-red">🔴 ${fmtH(total)}</span>`;
+      else if(isOT)badge=`<span class="labor-badge badge-ot">OT ${fmtH(total)}</span>`;
+      else if(isLunch)badge=`<span class="labor-badge badge-lunch">🍽 Lunch</span>`;
+      else if(isEOD)badge=`<span class="labor-badge badge-eod">EOD</span>`;
+      else if(total>0)badge=`<span style="font-size:10px;font-weight:700;color:var(--green)">${fmtH(total)}</span>`;
+      laborHTML+=`<div class="labor-member"><div class="labor-av" style="background:${c.bg};color:${c.fg}">${ini(p.name)}</div><div style="flex:1"><div class="labor-name">${p.name}</div><div class="labor-loc">${isLunch?'🍽 On Lunch':isEOD?'⏹ Clocked Out':(loc||'Undeployed')}</div></div>${badge}</div>`;
+    });
+    if(people.length>8)laborHTML+=`<div style="font-size:11px;color:var(--text3);margin-top:8px">+${people.length-8} more → <a href="labor-tracker.html" style="color:var(--green);text-decoration:none">Open Tracker</a></div>`;
+  }
+  let deptHTML='';
+  allDepts.forEach(dept=>{const dname=dept.name||dept;const t=people.reduce((s,p)=>{const h=dayData['hrs:'+p.id]||{};return s+(parseFloat(h[dname])||0);},0);if(t===0)return;deptHTML+=`<div class="dept-row"><span class="dept-name-sm">${dept.icon||'📌'} ${dname}</span><span class="dept-hrs">${fmtH(t)}</span></div>`;});
+  if(!deptHTML)deptHTML='<div class="admin-empty">No hours logged today yet.</div>';
+  const activeOrders=ordersData.filter(o=>o.stage!=='Shipped / Complete').sort((a,b)=>(a.dueDate||'9999')>(b.dueDate||'9999')?1:-1);
+  const urgentOrders=activeOrders.filter(o=>{const d=daysUntil(o.dueDate);return d!==null&&d<=1;});
+  let ordersHTML='';
+  if(!activeOrders.length){ordersHTML='<div class="admin-empty">No active orders.</div>';}
+  else{
+    activeOrders.slice(0,7).forEach(o=>{
+      const brand=o.brand==='Other'?o.customBrand:o.brand;const days=daysUntil(o.dueDate);
+      const overdue=days!==null&&days<0,dueToday=days===0;const sc=STAGE_COLORS[o.stage]||'#6b7280';
+      const dueColor=overdue?'var(--red)':dueToday?'var(--amber)':'var(--text2)';
+      const dueStr=o.dueDate?(overdue?`⚠ Overdue ${Math.abs(days)}d`:dueToday?'Due Today':`Due ${fmtDate(o.dueDate)}`):' —';
+      ordersHTML+=`<div class="order-row"><div class="stage-dot" style="background:${sc}"></div><div style="flex:1"><div class="order-brand">${brand||'—'}</div><div class="order-type-sm">${o.type} · ${o.stage.split(' / ')[0]}</div></div><div class="order-due" style="color:${dueColor}">${dueStr}</div></div>`;
+    });
+    if(activeOrders.length>7)ordersHTML+=`<div style="font-size:11px;color:var(--text3);margin-top:8px">+${activeOrders.length-7} more → <a href="retail-dashboard.html" style="color:var(--teal);text-decoration:none">Open Dashboard</a></div>`;
+  }
+  document.getElementById('adminContent').innerHTML=`
+  ${alerts}
+  <div class="admin-grid">
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">👥</span><span class="admin-card-title">Today's Labor</span><span class="admin-card-count" style="background:var(--green-mid);color:var(--green)">${people.length} staff · ${fmtH(totalHrsToday)}</span></div>
+      <div class="admin-card-body">${laborHTML}</div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">📊</span><span class="admin-card-title">Hours by Department</span>${finalized?'<span class="admin-card-count" style="background:var(--green-mid);color:var(--green)">✓ Finalized</span>':'<span class="admin-card-count" style="background:var(--bg3);color:var(--text3)">In Progress</span>'}</div>
+      <div class="admin-card-body">${deptHTML}</div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">📦</span><span class="admin-card-title">Active Orders</span><span class="admin-card-count" style="background:rgba(45,212,191,0.1);color:var(--teal)">${activeOrders.length} active${urgentOrders.length?' · '+urgentOrders.length+' urgent':''}</span></div>
+      <div class="admin-card-body">${ordersHTML}</div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-head"><span class="admin-card-icon">🔗</span><span class="admin-card-title">Quick Access</span></div>
+      <div class="admin-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${[['labor-tracker.html','👥','Labor Tracker','var(--green)'],['retail-dashboard.html','📦','Retail Dashboard','var(--teal)'],['special-project-quote.html','💰','Project Quote','var(--blue)'],['labor-calculator.html','⏱','Labor Calc','var(--amber)'],['packing-slip.html','🧾','Packing Slips','var(--purple)'],['iq-bar-packing-slip.html','📋','IQ Bar Slip','var(--purple)'],['brand-hub.html','🏢','Brand Hub','var(--teal)'],['special-projects-dashboard.html','📋','SP Dashboard','var(--green)']].map(([href,icon,name,color])=>`<a href="${href}" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px;text-decoration:none;display:flex;flex-direction:column;gap:6px;transition:border-color .2s" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='var(--border2)'"><span style="font-size:20px">${icon}</span><span style="font-size:12px;font-weight:700;color:var(--text)">${name}</span></a>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+</script>
+</body>
+</html>
