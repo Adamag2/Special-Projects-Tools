@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, getDocs, addDoc, doc, setDoc, deleteDoc, orderBy, query, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCXWwp346vnAQmarUYocvb7DSTana0jNwA",
+  authDomain: "atomix-tools.firebaseapp.com",
+  projectId: "atomix-tools",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Expose to global scope for non-module scripts
+window._db = db;
+window._fbCollection = collection;
+window._fbDocs = getDocs;
+window._fbAddDoc = addDoc;
+window._fbDoc = doc;
+window._fbSetDoc = setDoc;
+window._fbDeleteDoc = deleteDoc;
+window._fbQuery = query;
+window._fbOrderBy = orderBy;
+window._fbWriteBatch = writeBatch;
+window._firebaseReady = true;
+window.dispatchEvent(new Event('firebaseReady'));
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c10;
+  --surface:#0e1318;
+  --surface2:#141b22;
+  --surface3:#1a2330;
+  --border:#1e2d3d;
+  --border2:#243545;
+  --green:#3EBD84;
+  --green-dim:#2a8a5e;
+  --green-bg:rgba(62,189,132,0.08);
+  --text:#e8edf2;
+  --text2:#8fa3b8;
+  --text3:#506070;
+  --red:#e05c6a;
+  --red-bg:rgba(224,92,106,0.1);
+  --amber:#f0a832;
+  --amber-bg:rgba(240,168,50,0.1);
+  --blue:#4a9eed;
+  --blue-bg:rgba(74,158,237,0.1);
+  --purple:#9b73e8;
+  --done-bg:rgba(62,189,132,0.12);
+  --staged-bg:rgba(74,158,237,0.12);
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+a{color:var(--green);text-decoration:none}
+
+/* Layout */
+.app{display:flex;flex-direction:column;height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:16px;height:56px;flex-shrink:0}
+.header-logo{font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.header-logo span{color:var(--green)}
+.header-title{font-size:13px;color:var(--text2);border-left:1px solid var(--border);padding-left:16px}
+.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* Sidebar */
+.sidebar-section{padding:16px 12px 8px;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.sidebar-btn{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-radius:0;font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;width:100%;text-align:left;transition:all .15s}
+.sidebar-btn:hover{background:var(--surface2);color:var(--text)}
+.sidebar-btn.active{background:var(--green-bg);color:var(--green);border-right:2px solid var(--green)}
+.sidebar-icon{font-size:16px;opacity:.7}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif}
+.btn:hover{background:var(--surface3);border-color:var(--green);color:var(--green)}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
+.btn-green:hover{background:var(--green-dim);border-color:var(--green-dim);color:#fff}
+.btn-ghost{background:none;border-color:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);border-color:var(--border2);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-icon{padding:6px;border-radius:5px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.02em}
+.badge-done{background:var(--done-bg);color:var(--green)}
+.badge-staged{background:var(--staged-bg);color:var(--blue)}
+.badge-todo{background:var(--surface3);color:var(--text2)}
+.badge-notstarted{background:rgba(224,92,106,0.1);color:var(--red)}
+.badge-delayed{background:var(--amber-bg);color:var(--amber)}
+.badge-missing{background:var(--red-bg);color:var(--red)}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+
+/* Upload zone */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--green);background:var(--green-bg)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-icon{font-size:32px;margin-bottom:8px;color:var(--text3)}
+.upload-label{font-size:13px;color:var(--text2);margin-bottom:4px}
+.upload-hint{font-size:11px;color:var(--text3)}
+
+/* Schedule grid */
+.schedule-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.view-toggle{display:flex;border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.view-toggle button{padding:6px 14px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif}
+.view-toggle button.active{background:var(--surface3);color:var(--green)}
+
+.week-nav{display:flex;align-items:center;gap:8px}
+.week-nav .period{font-size:13px;font-weight:600;color:var(--text);min-width:160px;text-align:center}
+
+/* Week view */
+.week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.day-col{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;min-height:120px}
+.day-header{padding:8px 10px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);display:flex;flex-direction:column;gap:1px}
+.day-header .day-name{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.day-header .day-date{font-size:13px;font-weight:700;color:var(--text)}
+.day-header.today .day-date{color:var(--green)}
+.day-body{padding:6px}
+
+/* PO card */
+.po-card{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;margin-bottom:5px;cursor:pointer;transition:all .15s}
+.po-card:hover{border-color:var(--green);background:var(--surface3)}
+.po-card.note-flag{border-left:3px solid var(--amber)}
+.po-retailer{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.po-number{font-size:10px;color:var(--text3);margin-top:1px;font-family:monospace}
+.po-note{font-size:10px;color:var(--amber);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Month view */
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
+.month-day{background:var(--bg);padding:6px;min-height:80px}
+.month-day-num{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px}
+.month-day.cur-month .month-day-num{color:var(--text2)}
+.month-day.today .month-day-num{color:var(--green);background:var(--green-bg);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.month-po{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.more-tag{font-size:10px;color:var(--text3);cursor:pointer}
+.month-header-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:1px}
+.month-header-cell{padding:6px 8px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;text-align:center}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.stat-value{font-size:22px;font-weight:700;color:var(--text)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:440px;max-width:90vw;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block;letter-spacing:.04em;text-transform:uppercase}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px;font-family:'Outfit',sans-serif}
+.form-input:focus{outline:none;border-color:var(--green)}
+.form-select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px;font-family:'Outfit',sans-serif}
+textarea.form-input{resize:vertical;min-height:80px}
+
+/* Loading */
+.loading{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:13px;padding:20px}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn .2s ease}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Import panel */
+.import-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.panel-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.parsing-row{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.parsing-check{color:var(--green);font-size:14px}
+.parsing-text{font-size:12px;color:var(--text2)}
+
+/* Retailer colors */
+.retailer-kehe{background:rgba(155,115,232,0.12);color:var(--purple)}
+.retailer-unfi{background:rgba(74,158,237,0.12);color:var(--blue)}
+.retailer-iq{background:rgba(62,189,132,0.12);color:var(--green)}
+.retailer-default{background:var(--surface3);color:var(--text2)}
+
+/* Export bar */
+.export-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.export-bar span{font-size:12px;color:var(--text3);margin-right:4px}
+
+/* Empty */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:12px}
+
+/* No scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Print */
+@media print{
+  .sidebar,.header,.export-bar,.header-actions,.import-panel,.upload-zone,.schedule-header button,.view-toggle,.week-nav button{display:none!important}
+  body,.app,.content{background:#fff!important;color:#000!important}
+  .po-card,.day-col,.card{border-color:#ddd!important;background:#fff!important}
+  .po-retailer,.po-number{color:#000!important}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-logo"><span>Atomix</span> Logistics</div>
+    <div class="header-title">Retail / B2B Schedule</div>
+    <div class="header-actions">
+      <button class="btn btn-sm" onclick="openImport()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Import Orders
+      </button>
+      <button class="btn btn-sm btn-green" onclick="openAddManual()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add PO
+      </button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">Navigation</div>
+      <button class="sidebar-btn active" id="nav-schedule" onclick="showView('schedule')">
+        <svg class="sidebar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Schedule
+      </button>
+      <button class="sidebar-btn" id="nav-orders" onclick="showView('orders')">
+        <svg class="sidebar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        All Orders
+      </button>
+      <button class="sidebar-btn" id="nav-import" onclick="openImport()">
+        <svg class="sidebar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Import
+      </button>
+      <div class="sidebar-section" style="margin-top:8px">Filters</div>
+      <div id="retailer-filters" style="padding:4px 0"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="main-content">
+      <div class="loading"><div class="spinner"></div> Loading schedule...</div>
+    </div>
+  </div>
+
+  <!-- Export Bar -->
+  <div class="export-bar">
+    <span>Share:</span>
+    <button class="btn btn-sm" onclick="exportPDF()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      PDF
+    </button>
+    <button class="btn btn-sm" onclick="copyToClipboard()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copy Text
+    </button>
+    <button class="btn btn-sm" onclick="window.print()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="modal-bg" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal()"></div>
+<div id="modal" class="modal" style="display:none"></div>
+
+<!-- Import Modal -->
+<div id="import-bg" class="modal-bg" style="display:none" onclick="if(event.target===this)closeImport()"></div>
+<div id="import-modal" class="modal" style="display:none;width:560px"></div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ─── Firebase ────────────────────────────────────────────────
+const COLLECTION = 'retail_schedule_orders';
+function waitForFirebase(){return new Promise(r=>{if(window._firebaseReady){r();return;}window.addEventListener('firebaseReady',r,{once:true});setTimeout(r,4000);});}
+
+// ─── State ───────────────────────────────────────────────────
+let orders = [];
+let currentView = 'schedule';
+let scheduleMode = 'week'; // week | month
+let weekOffset = 0;
+let activeFilters = new Set();
+let isLoading = false;
+
+// ─── Dates ───────────────────────────────────────────────────
+function getMondayOfWeek(offset=0){
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1) + offset*7;
+  return new Date(d.setDate(diff));
+}
+
+function getWeekDays(offset=0){
+  const mon = getMondayOfWeek(offset);
+  return Array.from({length:5},(_,i)=>{
+    const d = new Date(mon);
+    d.setDate(d.getDate()+i);
+    return d;
+  });
+}
+
+function parseDate(str){
+  if(!str)return null;
+  // "Tuesday, June 16th 2026"
+  const m1 = str.match(/(\w+)\s+(\d+)[a-z]*\s+(\d{4})/i);
+  if(m1)return new Date(`${m1[1]} ${m1[2]}, ${m1[3]}`);
+  // "06/16/2026"
+  const m2 = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m2)return new Date(`${m2[3]}-${m2[1].padStart(2,'0')}-${m2[2].padStart(2,'0')}`);
+  // ISO
+  const d = new Date(str);
+  if(!isNaN(d))return d;
+  return null;
+}
+
+function fmtDate(d){
+  if(!d)return '';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function sameDay(a,b){
+  return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+}
+
+function isoDate(d){
+  return d.toISOString().split('T')[0];
+}
+
+// ─── Firebase CRUD ───────────────────────────────────────────
+async function loadOrders(){
+  await waitForFirebase();
+  try{
+    const db=window._db;if(!db)throw new Error('no db');
+    const snap=await window._fbDocs(window._fbQuery(window._fbCollection(db,COLLECTION),window._fbOrderBy('shipDate')));
+    orders=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){
+    const local=localStorage.getItem('atomix_schedule_orders');
+    if(local)orders=JSON.parse(local);
+  }
+  renderAll();
+}
+
+function saveLocal(){
+  try{localStorage.setItem('atomix_schedule_orders',JSON.stringify(orders));}catch(e){}
+}
+
+async function saveOrder(order){
+  const data = {
+    retailer: order.retailer||'',
+    poNumber: order.poNumber||'',
+    shipDate: order.shipDate||'',
+    status: order.status||'to do',
+    note: order.note||'',
+    source: order.source||'manual',
+    updatedAt: new Date().toISOString()
+  };
+  try{
+    const db=window._db;if(!db)throw new Error('no db');
+    if(order.id){
+      await window._fbSetDoc(window._fbDoc(db,COLLECTION,order.id),data,{merge:true});
+    }else{
+      const ref=await window._fbAddDoc(window._fbCollection(db,COLLECTION),data);
+      order.id=ref.id;
+    }
+  }catch(e){console.warn('Offline, saving locally')}
+  // Sync local array
+  const idx = orders.findIndex(o=>o.id===order.id);
+  if(idx>=0)orders[idx]={...orders[idx],...data,id:order.id};
+  else orders.push({...data,id:order.id});
+  saveLocal();
+  renderAll();
+}
+
+async function deleteOrder(id){
+  try{const db=window._db;if(db)await window._fbDeleteDoc(window._fbDoc(db,COLLECTION,id));}catch(e){}
+  orders = orders.filter(o=>o.id!==id);
+  saveLocal();
+  renderAll();
+}
+
+async function bulkSaveOrders(newOrders){
+  const saved=[];
+  try{
+    const db=window._db;if(!db)throw new Error('no db');
+    const batch=window._fbWriteBatch(db);
+    for(const o of newOrders){
+      const ref=window._fbDoc(window._fbCollection(db,COLLECTION));
+      const data={retailer:o.retailer||'',poNumber:o.poNumber||'',shipDate:o.shipDate||'',status:o.status||'to do',note:o.note||'',source:o.source||'import',updatedAt:new Date().toISOString()};
+      batch.set(ref,data);saved.push({...data,id:ref.id});
+    }
+    await batch.commit();
+  }catch(e){
+    newOrders.forEach(o=>saved.push({...o,id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2),updatedAt:new Date().toISOString()}));
+  }
+  orders.push(...saved);saveLocal();renderAll();
+}
+
+// ─── Views ───────────────────────────────────────────────────
+function showView(v){
+  currentView=v;
+  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('nav-'+v);
+  if(btn)btn.classList.add('active');
+  renderAll();
+}
+
+function renderAll(){
+  buildRetailerFilters();
+  if(currentView==='schedule')renderSchedule();
+  else renderOrdersList();
+}
+
+function getFilteredOrders(){
+  if(activeFilters.size===0)return orders;
+  return orders.filter(o=>activeFilters.has(o.retailer));
+}
+
+function buildRetailerFilters(){
+  const retailers = [...new Set(orders.map(o=>o.retailer).filter(Boolean))].sort();
+  const el = document.getElementById('retailer-filters');
+  if(!el)return;
+  el.innerHTML = retailers.map(r=>`
+    <button class="sidebar-btn ${activeFilters.has(r)?'active':''}" onclick="toggleFilter('${r.replace(/'/g,"\\'")}')">
+      <span style="width:8px;height:8px;border-radius:50%;background:${retailerColor(r)};display:inline-block"></span>
+      ${r}
+    </button>
+  `).join('');
+}
+
+function toggleFilter(r){
+  if(activeFilters.has(r))activeFilters.delete(r);
+  else activeFilters.add(r);
+  renderAll();
+}
+
+function retailerColor(r){
+  const map={
+    'KeHE':'#9b73e8','UNFI':'#4a9eed','IQ Wholesale':'#3EBD84',
+    'HEB':'#f0a832','Supervalu':'#e05c6a','Thrive Market':'#3EBD84',
+    'iHerb':'#4a9eed','Lipari':'#9b73e8','Sierra Trading':'#f0a832'
+  };
+  return map[r]||'#506070';
+}
+
+function statusBadge(s){
+  const map={
+    'done':'badge-done','staged':'badge-staged','to do':'badge-todo',
+    'not started':'badge-notstarted','ready for cx close out':'badge-done',
+    'bol information':'badge-staged'
+  };
+  const cls = map[(s||'').toLowerCase()]||'badge-todo';
+  return `<span class="badge ${cls}">${s||'to do'}</span>`;
+}
+
+// ─── Schedule View ───────────────────────────────────────────
+function renderSchedule(){
+  const c = document.getElementById('main-content');
+  const filtered = getFilteredOrders();
+  const today = new Date();
+
+  // Stats
+  const upcoming = filtered.filter(o=>{const d=parseDate(o.shipDate);return d&&d>=today});
+  const thisWeek = filtered.filter(o=>{const d=parseDate(o.shipDate);if(!d)return false;const days=getWeekDays(0);return days.some(w=>sameDay(d,w))});
+  const doneCount = filtered.filter(o=>o.status==='done'||o.status==='ready for cx close out').length;
+
+  c.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-value">${filtered.length}</div><div class="stat-label">Total Orders</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--amber)">${thisWeek.length}</div><div class="stat-label">Due This Week</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${upcoming.length}</div><div class="stat-label">Upcoming</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${doneCount}</div><div class="stat-label">Completed</div></div>
+    </div>
+    <div class="schedule-header">
+      <div class="view-toggle">
+        <button class="${scheduleMode==='week'?'active':''}" onclick="setMode('week')">Week</button>
+        <button class="${scheduleMode==='month'?'active':''}" onclick="setMode('month')">Month</button>
+      </div>
+      <div class="week-nav">
+        <button class="btn btn-sm btn-ghost" onclick="navPrev()">‹ Prev</button>
+        <span class="period" id="period-label"></span>
+        <button class="btn btn-sm btn-ghost" onclick="navNext()">Next ›</button>
+        <button class="btn btn-sm btn-ghost" onclick="weekOffset=0;monthOffset=0;renderAll()">Today</button>
+      </div>
+    </div>
+    <div id="schedule-grid"></div>
+  `;
+
+  if(scheduleMode==='week')renderWeekGrid(filtered);
+  else renderMonthGrid(filtered);
+}
+
+let monthOffset = 0;
+
+function setMode(m){scheduleMode=m;weekOffset=0;monthOffset=0;renderAll();}
+function navPrev(){if(scheduleMode==='week')weekOffset--;else monthOffset--;renderAll();}
+function navNext(){if(scheduleMode==='week')weekOffset++;else monthOffset++;renderAll();}
+
+function renderWeekGrid(filtered){
+  const days = getWeekDays(weekOffset);
+  const label = document.getElementById('period-label');
+  if(label)label.textContent = `${fmtDate(days[0])} – ${fmtDate(days[4])}`;
+
+  const today = new Date();
+  const grid = document.getElementById('schedule-grid');
+  if(!grid)return;
+
+  grid.innerHTML = `<div class="week-grid">
+    ${days.map(day=>{
+      const isToday = sameDay(day,today);
+      const dayOrders = filtered.filter(o=>{ const d=parseDate(o.shipDate); return d&&sameDay(d,day); });
+      return `<div class="day-col">
+        <div class="day-header ${isToday?'today':''}">
+          <span class="day-name">${day.toLocaleDateString('en-US',{weekday:'short'})}</span>
+          <span class="day-date">${day.getDate()}</span>
+        </div>
+        <div class="day-body">
+          ${dayOrders.length===0?'<div style="padding:8px;font-size:11px;color:var(--text3);text-align:center">—</div>':''}
+          ${dayOrders.map(o=>poCardHTML(o)).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderMonthGrid(filtered){
+  const today = new Date();
+  const base = new Date(today.getFullYear(), today.getMonth()+monthOffset, 1);
+  const label = document.getElementById('period-label');
+  if(label)label.textContent = base.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  const firstDay = new Date(base.getFullYear(),base.getMonth(),1);
+  const lastDay = new Date(base.getFullYear(),base.getMonth()+1,0);
+  // Start on Monday
+  let startDow = firstDay.getDay();
+  if(startDow===0)startDow=7;
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate()-(startDow-1));
+
+  const cells = [];
+  const cur = new Date(startDate);
+  for(let i=0;i<42;i++){
+    cells.push(new Date(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const grid = document.getElementById('schedule-grid');
+  if(!grid)return;
+
+  grid.innerHTML = `
+    <div class="month-header-row">
+      ${dayNames.map(d=>`<div class="month-header-cell">${d}</div>`).join('')}
+    </div>
+    <div class="month-grid">
+    ${cells.map(day=>{
+      const inMonth = day.getMonth()===base.getMonth();
+      const isToday = sameDay(day,today);
+      const dayOrders = filtered.filter(o=>{const d=parseDate(o.shipDate);return d&&sameDay(d,day);});
+      const show = dayOrders.slice(0,3);
+      const extra = dayOrders.length-3;
+      return `<div class="month-day ${inMonth?'cur-month':''} ${isToday?'today':''}">
+        <div class="month-day-num">${day.getDate()}</div>
+        ${show.map(o=>`
+          <div class="month-po" style="background:${retailerColor(o.retailer)}22;color:${retailerColor(o.retailer)}"
+            onclick="openEditModal('${o.id}')">
+            ${o.retailer} ${o.poNumber?'#'+o.poNumber:''}
+          </div>`).join('')}
+        ${extra>0?`<div class="more-tag" onclick="">+${extra} more</div>`:''}
+      </div>`;
+    }).join('')}
+    </div>`;
+}
+
+function poCardHTML(o){
+  const hasNote = o.note&&o.note.trim();
+  return `<div class="po-card ${hasNote?'note-flag':''}" onclick="openEditModal('${o.id}')">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+      <div class="po-retailer">${o.retailer||'—'}</div>
+      ${statusBadge(o.status)}
+    </div>
+    <div class="po-number">${o.poNumber||''}</div>
+    ${hasNote?`<div class="po-note">⚠ ${o.note}</div>`:''}
+  </div>`;
+}
+
+// ─── Orders List View ────────────────────────────────────────
+function renderOrdersList(){
+  const c = document.getElementById('main-content');
+  const filtered = getFilteredOrders().sort((a,b)=>{
+    const da=parseDate(a.shipDate),db=parseDate(b.shipDate);
+    if(!da&&!db)return 0;if(!da)return 1;if(!db)return -1;
+    return da-db;
+  });
+
+  c.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <h2 style="font-size:16px;font-weight:600">All Orders <span style="font-size:13px;color:var(--text3);font-weight:400">(${filtered.length})</span></h2>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Retailer</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">PO / Order #</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Ship Date</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Status</th>
+            <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Note</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.length===0?`<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text3)">No orders yet — import or add one</td></tr>`:''}
+          ${filtered.map(o=>`
+            <tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="openEditModal('${o.id}')" class="table-row">
+              <td style="padding:10px 14px">
+                <span style="font-weight:600;font-size:13px">${o.retailer||'—'}</span>
+              </td>
+              <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:var(--text2)">${o.poNumber||'—'}</td>
+              <td style="padding:10px 14px;font-size:13px;color:${shipDateColor(o.shipDate)}">${o.shipDate?fmtDateStr(o.shipDate):'—'}</td>
+              <td style="padding:10px 14px">${statusBadge(o.status)}</td>
+              <td style="padding:10px 14px;font-size:12px;color:var(--amber);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.note||''}</td>
+              <td style="padding:10px 14px;text-align:right">
+                <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();confirmDelete('${o.id}')">✕</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // hover effect
+  document.querySelectorAll('.table-row').forEach(r=>{
+    r.addEventListener('mouseenter',()=>r.style.background='var(--surface2)');
+    r.addEventListener('mouseleave',()=>r.style.background='');
+  });
+}
+
+function fmtDateStr(s){
+  const d=parseDate(s);return d?fmtDate(d):s;
+}
+
+function shipDateColor(s){
+  const d=parseDate(s);if(!d)return 'var(--text2)';
+  const today=new Date();today.setHours(0,0,0,0);
+  const diff=(d-today)/86400000;
+  if(diff<0)return 'var(--red)';
+  if(diff<=2)return 'var(--amber)';
+  return 'var(--text)';
+}
+
+// ─── Edit Modal ──────────────────────────────────────────────
+function openEditModal(id){
+  const o = orders.find(x=>x.id===id);
+  if(!o)return;
+  const statusOpts = ['to do','staged','done','not started','ready for cx close out','bol information'];
+  const noteFlags = ['','Delayed — waiting on inventory','Missing inventory','Carrier issue','Client request','Other'];
+  
+  showModal(`
+    <div class="modal-title">
+      Edit Order
+      <button class="btn btn-sm btn-ghost" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Retailer</label>
+      <input class="form-input" id="edit-retailer" value="${o.retailer||''}" placeholder="e.g. KeHE, UNFI">
+    </div>
+    <div class="form-group">
+      <label class="form-label">PO / Order Number</label>
+      <input class="form-input" id="edit-po" value="${o.poNumber||''}" placeholder="e.g. 3746831">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ship Date</label>
+      <input class="form-input" type="date" id="edit-date" value="${o.shipDate||''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="edit-status">
+        ${statusOpts.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note / Flag</label>
+      <select class="form-select" id="edit-note-preset" onchange="if(this.value)document.getElementById('edit-note').value=this.value">
+        <option value="">— Quick flag —</option>
+        ${noteFlags.slice(1).map(n=>`<option value="${n}">${n}</option>`).join('')}
+      </select>
+      <textarea class="form-input" id="edit-note" style="margin-top:6px" placeholder="Add a note for this PO...">${o.note||''}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveEditModal('${id}')">Save Changes</button>
+    </div>
+  `);
+}
+
+async function saveEditModal(id){
+  const o = orders.find(x=>x.id===id)||{id};
+  o.retailer = document.getElementById('edit-retailer').value.trim();
+  o.poNumber = document.getElementById('edit-po').value.trim();
+  o.shipDate = document.getElementById('edit-date').value;
+  o.status = document.getElementById('edit-status').value;
+  o.note = document.getElementById('edit-note').value.trim();
+  closeModal();
+  await saveOrder(o);
+  toast('Order updated','success');
+}
+
+function openAddManual(){
+  showModal(`
+    <div class="modal-title">
+      Add PO Manually
+      <button class="btn btn-sm btn-ghost" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Retailer</label>
+      <input class="form-input" id="new-retailer" placeholder="e.g. KeHE, UNFI, Thrive Market">
+    </div>
+    <div class="form-group">
+      <label class="form-label">PO / Order Number</label>
+      <input class="form-input" id="new-po" placeholder="e.g. 3746831">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ship Date</label>
+      <input class="form-input" type="date" id="new-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="new-status">
+        <option>to do</option><option>staged</option><option>done</option><option>not started</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note</label>
+      <textarea class="form-input" id="new-note" placeholder="Optional note..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="saveNewOrder()">Add Order</button>
+    </div>
+  `);
+}
+
+async function saveNewOrder(){
+  const r=document.getElementById('new-retailer').value.trim();
+  const p=document.getElementById('new-po').value.trim();
+  const d=document.getElementById('new-date').value;
+  if(!r){toast('Retailer required','error');return;}
+  closeModal();
+  await saveOrder({retailer:r,poNumber:p,shipDate:d,status:document.getElementById('new-status').value,note:document.getElementById('new-note').value.trim(),source:'manual'});
+  toast('Order added','success');
+}
+
+function confirmDelete(id){
+  const o=orders.find(x=>x.id===id);
+  showModal(`
+    <div class="modal-title">Delete Order</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:20px">Delete <strong>${o?.retailer||''}</strong> PO# ${o?.poNumber||id}? This cannot be undone.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" style="border-color:var(--red);color:var(--red)" onclick="deleteOrder('${id}');closeModal();toast('Deleted','success')">Delete</button>
+    </div>
+  `);
+}
+
+// ─── Import Modal ────────────────────────────────────────────
+function openImport(){
+  document.getElementById('import-bg').style.display='flex';
+  const m = document.getElementById('import-modal');
+  m.style.display='block';
+  m.innerHTML = `
+    <div class="modal-title">
+      Import Orders
+      <button class="btn btn-sm btn-ghost" onclick="closeImport()">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Upload a CSV export or screenshot from RetailReady / any order management system. AI will extract retailer, PO#, and ship date.</p>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <div class="form-label" style="margin-bottom:8px">CSV File</div>
+        <div class="upload-zone" id="csv-zone" ondragover="dragOver(event,'csv-zone')" ondragleave="dragLeave('csv-zone')" ondrop="dropFile(event,'csv')">
+          <input type="file" accept=".csv" onchange="handleCSV(event)">
+          <div class="upload-icon">📊</div>
+          <div class="upload-label">Drop CSV here</div>
+          <div class="upload-hint">ClickUp / RetailReady exports</div>
+        </div>
+      </div>
+      <div>
+        <div class="form-label" style="margin-bottom:8px">Screenshot / Image</div>
+        <div class="upload-zone" id="img-zone" ondragover="dragOver(event,'img-zone')" ondragleave="dragLeave('img-zone')" ondrop="dropFile(event,'img')">
+          <input type="file" accept="image/*" onchange="handleImage(event)">
+          <div class="upload-icon">🖼</div>
+          <div class="upload-label">Drop screenshot here</div>
+          <div class="upload-hint">RetailReady, portal screenshots</div>
+        </div>
+      </div>
+    </div>
+    <div id="import-results"></div>
+  `;
+}
+
+function closeImport(){
+  document.getElementById('import-bg').style.display='none';
+  document.getElementById('import-modal').style.display='none';
+}
+
+function dragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over');}
+function dragLeave(id){document.getElementById(id).classList.remove('drag-over');}
+function dropFile(e,type){
+  e.preventDefault();
+  const file=e.dataTransfer.files[0];
+  if(!file)return;
+  if(type==='csv')processCSVFile(file);
+  else processImageFile(file);
+}
+
+function handleCSV(e){processCSVFile(e.target.files[0]);}
+function handleImage(e){processImageFile(e.target.files[0]);}
+
+function processCSVFile(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>parseCSVContent(e.target.result,file.name);
+  r.readAsText(file);
+}
+
+function parseCSVContent(text,fname){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2){toast('Empty CSV','error');return;}
+  
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
+  const rows=[];
+  
+  // Map header indices
+  const idxRetailer = headers.findIndex(h=>h.includes('task name')||h.includes('retailer')||h.includes('account'));
+  const idxPO = headers.findIndex(h=>h.includes('po number')||h.includes('order id')||h.includes('order #'));
+  const idxDate = headers.findIndex(h=>h.includes('preferred ship')||h.includes('requested ship')||h.includes('due date')||h.includes('ship date'));
+  const idxStatus = headers.findIndex(h=>h.includes('status'));
+
+  for(let i=1;i<lines.length;i++){
+    const cols=parseCSVLine(lines[i]);
+    if(cols.length<2)continue;
+    const retailer=idxRetailer>=0?cols[idxRetailer]?.trim():'';
+    const poNumber=idxPO>=0?cols[idxPO]?.trim():'';
+    const rawDate=idxDate>=0?cols[idxDate]?.trim():'';
+    const status=idxStatus>=0?cols[idxStatus]?.trim():'to do';
+    if(!retailer&&!poNumber)continue;
+    const d=parseDate(rawDate);
+    rows.push({retailer,poNumber,shipDate:d?isoDate(d):'',status:status.toLowerCase(),source:'csv'});
+  }
+  showImportPreview(rows,'CSV: '+fname);
+}
+
+function parseCSVLine(line){
+  const result=[];let cur='';let inQ=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"'){inQ=!inQ;}
+    else if(line[i]===','&&!inQ){result.push(cur);cur='';}
+    else cur+=line[i];
+  }
+  result.push(cur);
+  return result.map(c=>c.replace(/^"|"$/g,''));
+}
+
+async function processImageFile(file){
+  const res=document.getElementById('import-results');
+  res.innerHTML=`<div class="loading"><div class="spinner"></div> Reading image with AI...</div>`;
+  
+  const b64=await new Promise((ok,err)=>{
+    const r=new FileReader();
+    r.onload=e=>ok(e.target.result.split(',')[1]);
+    r.onerror=()=>err();
+    r.readAsDataURL(file);
+  });
+
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:file.type||'image/png',data:b64}},
+            {type:'text',text:`This is a screenshot of a retail order management system. Extract all visible orders.
+For each order, return JSON only (no markdown): {"orders":[{"retailer":"..","poNumber":"..","shipDate":"YYYY-MM-DD","status":".."}]}
+Rules:
+- retailer = Retailer/Account name (e.g. KeHE, UNFI, IQ Wholesale)
+- poNumber = Order ID or PO number
+- shipDate = Requested Ship Date or earliest Ship Window date in YYYY-MM-DD format
+- status = Status field (done/staged/to do/not started), lowercase
+Return only valid JSON, nothing else.`}
+          ]
+        }]
+      })
+    });
+    const data=await response.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'{}';
+    const clean=text.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    const rows=(parsed.orders||[]).map(o=>({...o,source:'screenshot'}));
+    showImportPreview(rows,'Screenshot import');
+  }catch(e){
+    res.innerHTML=`<div style="color:var(--red);padding:12px;font-size:13px">Failed to parse image. Try uploading a clearer screenshot.</div>`;
+  }
+}
+
+function showImportPreview(rows,source){
+  const res=document.getElementById('import-results');
+  if(!rows.length){
+    res.innerHTML=`<div style="color:var(--text2);padding:12px;font-size:13px">No orders found in this file.</div>`;
+    return;
+  }
+  res.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-size:13px;font-weight:600;color:var(--green)">✓ Found ${rows.length} orders</span>
+      <button class="btn btn-green btn-sm" onclick="confirmImport()">Import All</button>
+    </div>
+    <div style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:6px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">Retailer</th>
+          <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">PO #</th>
+          <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">Ship Date</th>
+          <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase">Status</th>
+        </tr>
+        ${rows.map(r=>`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:6px 10px;font-size:12px;font-weight:500">${r.retailer||'—'}</td>
+          <td style="padding:6px 10px;font-size:11px;font-family:monospace;color:var(--text2)">${r.poNumber||'—'}</td>
+          <td style="padding:6px 10px;font-size:12px">${r.shipDate||'—'}</td>
+          <td style="padding:6px 10px">${statusBadge(r.status)}</td>
+        </tr>`).join('')}
+      </table>
+    </div>
+  `;
+  window._pendingImport=rows;
+}
+
+async function confirmImport(){
+  if(!window._pendingImport?.length)return;
+  document.getElementById('import-results').innerHTML=`<div class="loading"><div class="spinner"></div> Saving to Firebase...</div>`;
+  await bulkSaveOrders(window._pendingImport);
+  window._pendingImport=null;
+  closeImport();
+  toast(`Imported successfully`,'success');
+}
+
+// ─── Modal helpers ───────────────────────────────────────────
+function showModal(html){
+  document.getElementById('modal-bg').style.display='flex';
+  const m=document.getElementById('modal');
+  m.style.display='block';
+  m.innerHTML=html;
+}
+function closeModal(){
+  document.getElementById('modal-bg').style.display='none';
+  document.getElementById('modal').style.display='none';
+}
+
+// ─── Export ──────────────────────────────────────────────────
+function copyToClipboard(){
+  const filtered=getFilteredOrders().sort((a,b)=>{
+    const da=parseDate(a.shipDate),db=parseDate(b.shipDate);
+    if(!da&&!db)return 0;if(!da)return 1;if(!db)return -1;
+    return da-db;
+  });
+  let text=`IQ Bar Retail/B2B Order Schedule\nGenerated: ${new Date().toLocaleDateString()}\n\n`;
+  text+=`Retailer\t\tPO Number\t\tShip Date\t\tStatus\t\tNote\n`;
+  text+=`${'─'.repeat(80)}\n`;
+  filtered.forEach(o=>{
+    text+=`${(o.retailer||'').padEnd(20)}\t${(o.poNumber||'').padEnd(16)}\t${(o.shipDate||'').padEnd(12)}\t${(o.status||'').padEnd(16)}\t${o.note||''}\n`;
+  });
+  navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard','success')).catch(()=>toast('Copy failed','error'));
+}
+
+function exportPDF(){
+  const {jsPDF}=window.jspdf;
+  if(!jsPDF){toast('PDF library loading...','error');return;}
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const filtered=getFilteredOrders().sort((a,b)=>{
+    const da=parseDate(a.shipDate),db=parseDate(b.shipDate);
+    if(!da&&!db)return 0;if(!da)return 1;if(!db)return -1;
+    return da-db;
+  });
+  
+  // Header
+  doc.setFillColor(8,12,16);
+  doc.rect(0,0,297,297,'F');
+  doc.setTextColor(62,189,132);
+  doc.setFontSize(18);doc.setFont(undefined,'bold');
+  doc.text('IQ Bar – Retail/B2B Order Schedule',14,16);
+  doc.setTextColor(143,163,184);
+  doc.setFontSize(9);doc.setFont(undefined,'normal');
+  doc.text(`Generated ${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`,14,22);
+  
+  // Table
+  const headers=['Retailer','PO / Order #','Ship Date','Status','Note'];
+  const rows=filtered.map(o=>[o.retailer||'—',o.poNumber||'—',o.shipDate?fmtDateStr(o.shipDate):'—',o.status||'—',o.note||'']);
+  
+  doc.setFontSize(8);
+  const colW=[50,45,35,40,100];
+  let x=14,y=32;
+  
+  // Header row
+  doc.setFillColor(20,27,34);
+  doc.rect(14,y-4,270,8,'F');
+  doc.setTextColor(80,96,112);doc.setFont(undefined,'bold');
+  headers.forEach((h,i)=>{doc.text(h,x,y);x+=colW[i];});
+  y+=8;
+  
+  // Data rows
+  doc.setFont(undefined,'normal');
+  rows.forEach((row,ri)=>{
+    if(y>185){doc.addPage();doc.setFillColor(8,12,16);doc.rect(0,0,297,297,'F');y=20;}
+    if(ri%2===0){doc.setFillColor(14,19,24);doc.rect(14,y-4,270,7,'F');}
+    x=14;
+    row.forEach((cell,ci)=>{
+      if(ci===3){
+        const cmap={'done':[62,189,132],'staged':[74,158,237],'to do':[80,96,112],'not started':[224,92,106]};
+        const col=cmap[cell.toLowerCase()]||[80,96,112];
+        doc.setTextColor(...col);
+      }else doc.setTextColor(232,237,242);
+      doc.text(String(cell).substring(0,ci===4?60:30),x,y,{maxWidth:colW[ci]-2});
+      x+=colW[ci];
+    });
+    y+=7;
+  });
+  
+  doc.save(`atomix-retail-schedule-${new Date().toISOString().split('T')[0]}.pdf`);
+  toast('PDF downloaded','success');
+}
+
+// ─── Toast ───────────────────────────────────────────────────
+function toast(msg,type='success'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`${type==='success'?'✓':'✕'} ${msg}`;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ─── Init ────────────────────────────────────────────────────
+loadOrders();
+</script>
+</body>
+</html>
